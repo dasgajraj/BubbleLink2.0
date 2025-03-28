@@ -1,174 +1,230 @@
-import React, { useState } from "react";
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  StyleSheet, 
-  TouchableOpacity, 
-  SafeAreaView, 
-  StatusBar 
+import React, { useState, useContext } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+  Alert,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
-import { loginUser, registerUser, logoutUser } from "../services/authService";
+import { colors } from "../config/theme";
+import { ThemeContext } from "../constants/ThemeContext";
+import { loginUser, registerUser } from "../services/authService"; // Adjust path as needed
 
-const App = () => {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
+const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [activeTab, setActiveTab] = useState<"login" | "register">("login");
 
-  const handleLogin = async () => {
+  const { theme } = useContext(ThemeContext);
+  const activeColors = colors[theme.mode];
+
+  const handleAuth = async () => {
     try {
-      const user = await loginUser(email, password);
-      // Handle successful login
-    } catch (err: any) {
-      // Handle login error
-    }
-  };
+      if (!email.trim()) {
+        Alert.alert("Validation Error", "Please enter an email address");
+        return;
+      }
 
-  const handleRegister = async () => {
-    try {
-      const user = await registerUser(email, password);
-      navigation.navigate("Home", { user });
+      if (!password.trim()) {
+        Alert.alert("Validation Error", "Please enter a password");
+        return;
+      }
+
+      if (activeTab === "login") {
+        await loginUser(email, password);
+      } else {
+        await registerUser(email, password);
+      }
     } catch (err: any) {
-        console.warn(err);
-        console.log(err);
+      let errorMessage = "An unexpected error occurred";
+
+      if (err.code) {
+        switch (err.code) {
+          case "auth/invalid-email":
+            errorMessage = "Invalid email address";
+            break;
+          case "auth/user-not-found":
+            errorMessage = "No user found with this email";
+            break;
+          case "auth/wrong-password":
+            errorMessage = "Incorrect password";
+            break;
+          case "auth/email-already-in-use":
+            errorMessage = "Email is already registered";
+            break;
+          case "auth/weak-password":
+            errorMessage = "Password is too weak";
+            break;
+        }
+      }
+
+      Alert.alert("Authentication Error", errorMessage);
     }
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar backgroundColor="#6A5ACD" barStyle="light-content" />
-      <View style={styles.container}>
-        <View style={styles.headerContainer}>
-          <TouchableOpacity 
-            style={[
-              styles.tabButton, 
-              activeTab === 'login' && styles.activeTabButton
-            ]}
-            onPress={() => setActiveTab('login')}
-          >
-            <Text style={[
-              styles.tabButtonText, 
-              activeTab === 'login' && styles.activeTabButtonText
-            ]}>
-              Login
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <SafeAreaView
+        style={[styles.safeArea, { backgroundColor: activeColors.background }]}
+      >
+        <View style={styles.container}>
+          <View style={styles.headerContainer}>
+            <TouchableOpacity
+              style={[
+                styles.tabButton,
+                activeTab === "login" && {
+                  backgroundColor: activeColors.primarySurface,
+                },
+              ]}
+              onPress={() => setActiveTab("login")}
+            >
+              <Text
+                style={[
+                  styles.tabButtonText,
+                  { color: activeColors.onSurface40 },
+                  activeTab === "login" && {
+                    color: activeColors.onPrimaryContainer,
+                    fontWeight: "bold",
+                  },
+                ]}
+              >
+                Login
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.tabButton,
+                activeTab === "register" && {
+                  backgroundColor: activeColors.primarySurface,
+                },
+              ]}
+              onPress={() => setActiveTab("register")}
+            >
+              <Text
+                style={[
+                  styles.tabButtonText,
+                  { color: activeColors.onSurface40 },
+                  activeTab === "register" && {
+                    color: activeColors.onPrimaryContainer,
+                    fontWeight: "bold",
+                  },
+                ]}
+              >
+                Register
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.formContainer}>
+            <Text
+              style={[styles.inputLabel, { color: activeColors.onSurface60 }]}
+            >
+              Email
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[
-              styles.tabButton, 
-              activeTab === 'register' && styles.activeTabButton
-            ]}
-            onPress={() => setActiveTab('register')}
-          >
-            <Text style={[
-              styles.tabButtonText, 
-              activeTab === 'register' && styles.activeTabButtonText
-            ]}>
-              Register
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: activeColors.secondarySurface,
+                  color: activeColors.onSurface20,
+                },
+              ]}
+              placeholder="Enter your email"
+              placeholderTextColor={activeColors.placeholder}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <Text
+              style={[styles.inputLabel, { color: activeColors.onSurface60 }]}
+            >
+              Password
             </Text>
-          </TouchableOpacity>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: activeColors.secondarySurface,
+                  color: activeColors.onSurface20,
+                },
+              ]}
+              placeholder="Enter your password"
+              placeholderTextColor={activeColors.placeholder}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                { backgroundColor: activeColors.primary },
+              ]}
+              onPress={handleAuth}
+            >
+              <Text
+                style={[
+                  styles.actionButtonText,
+                  { color: activeColors.onPrimaryContainer },
+                ]}
+              >
+                {activeTab === "login" ? "Login" : "Register"}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-
-        <View style={styles.formContainer}>
-          <Text style={styles.inputLabel}>Email</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your email"
-            placeholderTextColor="#888"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-
-          <Text style={styles.inputLabel}>Password</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your password"
-            placeholderTextColor="#888"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-
-          <TouchableOpacity 
-            style={styles.actionButton}
-            onPress={activeTab === 'login' ? handleLogin : handleRegister}
-          >
-            <Text style={styles.actionButtonText}>
-              {activeTab === 'login' ? 'Login' : 'Register'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#6A5ACD',
-  },
+  safeArea: { flex: 1 },
   container: {
     flex: 1,
-    backgroundColor: '#6A5ACD',
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
     marginTop: 20,
     marginBottom: 30,
   },
   tabButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    marginHorizontal: 10,
+    padding: 10,
     borderRadius: 20,
-  },
-  activeTabButton: {
-    backgroundColor: 'white',
+    marginHorizontal: 10,
   },
   tabButtonText: {
-    color: 'white',
     fontSize: 16,
-    fontWeight: '600',
-  },
-  activeTabButtonText: {
-    color: '#6A5ACD',
+    fontWeight: "600",
   },
   formContainer: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    flex: 1,
     padding: 30,
+    width: "100%",
   },
   inputLabel: {
-    color: '#6A5ACD',
     fontSize: 16,
     marginBottom: 10,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   input: {
-    backgroundColor: '#F0F0F0',
     borderRadius: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
+    padding: 12,
     marginBottom: 20,
-    fontSize: 16,
   },
   actionButton: {
-    backgroundColor: '#6A5ACD',
     borderRadius: 10,
-    paddingVertical: 15,
-    alignItems: 'center',
+    padding: 15,
+    alignItems: "center",
   },
   actionButtonText: {
-    color: 'white',
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 });
 
-export default App;
+export default Login;

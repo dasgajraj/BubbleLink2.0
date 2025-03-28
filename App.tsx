@@ -1,42 +1,27 @@
-import React, { useState, useEffect } from "react";
-import { StyleSheet, View } from "react-native";
-import Login from "./ui/Login";
-import LoadingScreen from "./ui/LoadingScreen";
-import Home from "./ui/Home";
-import { auth } from './config/firebaseConfig'; 
-
+import StackNavigation from "./navigation/StackNavigation";
+import { ThemeContext } from "./constants/ThemeContext";
+import { useState } from "react";
+import { StatusBar } from "react-native";
 const App = () => {
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-      setTimeout(() => {
-        setUser(currentUser);
-        setLoading(false);
-      }, 1000);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  if (loading) {
-    return <LoadingScreen />;
-  }
-
+  
+  const [theme, setTheme] = useState({ mode: "light" });
+  const updateTheme = (newTheme) => {
+    let mode;
+    if (!newTheme) {
+      mode = theme.mode === "dark" ? "light" : "dark";
+      newTheme = { mode };
+    }
+    setTheme(newTheme);
+  };
   return (
-    <View style={styles.container}>
-      {user ? <Home user={user} /> : <Login />}
-    </View>
+    <ThemeContext.Provider value={{ theme, updateTheme }}>
+      <StatusBar
+        barStyle={theme.mode === "dark" ? "light-content" : "dark-content"}
+        backgroundColor={theme.mode === "dark" ? "#000" : "#fff"}
+      />
+      <StackNavigation />
+    </ThemeContext.Provider>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});
 
 export default App;
