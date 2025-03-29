@@ -12,15 +12,19 @@ import {
 } from "react-native";
 import { colors } from "../config/theme";
 import { ThemeContext } from "../constants/ThemeContext";
-import { loginUser, registerUser } from "../services/authService"; // Adjust path as needed
+import { loginUser, registerUser } from "../services/authService";
+import { useNavigation } from "@react-navigation/native";
 
-const Login = () => {
+
+const Login = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
+  const [loading, setLoading] = useState(false);
 
   const { theme } = useContext(ThemeContext);
   const activeColors = colors[theme.mode];
+  const navigation = useNavigation();
 
   const handleAuth = async () => {
     try {
@@ -34,11 +38,25 @@ const Login = () => {
         return;
       }
 
+      setLoading(true);
+      
+      let user;
       if (activeTab === "login") {
-        await loginUser(email, password);
+        user = await loginUser(email, password);
       } else {
-        await registerUser(email, password);
+        user = await registerUser(email, password);
       }
+      
+      // Call the onLoginSuccess function passed from the parent component
+      onLoginSuccess(user);
+      
+      // Clear the form
+      setEmail("");
+      setPassword("");
+      
+      // No need to navigate here as the parent component will handle navigation
+      // based on the updated user state
+      
     } catch (err: any) {
       let errorMessage = "An unexpected error occurred";
 
@@ -63,6 +81,8 @@ const Login = () => {
       }
 
       Alert.alert("Authentication Error", errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -138,6 +158,7 @@ const Login = () => {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
+              editable={!loading}
             />
             <Text
               style={[styles.inputLabel, { color: activeColors.onSurface60 }]}
@@ -157,13 +178,16 @@ const Login = () => {
               value={password}
               onChangeText={setPassword}
               secureTextEntry
+              editable={!loading}
             />
             <TouchableOpacity
               style={[
                 styles.actionButton,
                 { backgroundColor: activeColors.primary },
+                loading && { opacity: 0.7 }
               ]}
               onPress={handleAuth}
+              disabled={loading}
             >
               <Text
                 style={[
@@ -171,7 +195,11 @@ const Login = () => {
                   { color: activeColors.onPrimaryContainer },
                 ]}
               >
-                {activeTab === "login" ? "Login" : "Register"}
+                {loading 
+                  ? "Please wait..." 
+                  : activeTab === "login" 
+                    ? "Login" 
+                    : "Register"}
               </Text>
             </TouchableOpacity>
           </View>
