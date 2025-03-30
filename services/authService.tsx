@@ -20,16 +20,27 @@ export const loginUser = async (email: string, password: string) => {
     throw new Error(error.message);
   }
 };
+
 export const registerUser = async (email: string, password: string) => {
   try {
     const userCredential: UserCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
+
+    // Generate a random number between 1 and 99 for EACH user registration
+    const randomNum = Math.floor(Math.random() * 99) + 1;
+    
+    // Randomly assign male or female avatars
+    const gender = Math.random() > 0.5 ? "men" : "women";
+    
+    // Construct the profile photo URL
+    const photoURL = `https://randomuser.me/api/portraits/${gender}/${randomNum}.jpg`;
 
     // Store user data in Firestore
     const userRef = doc(firestore, "users", user.uid);
     await setDoc(userRef, {
       email: user.email,
       uid: user.uid,
+      photoURL: photoURL,
       createdAt: new Date().toISOString(),
     });
 
@@ -41,9 +52,6 @@ export const registerUser = async (email: string, password: string) => {
   }
 };
 
-/**
- * Logout the currently authenticated user.
- */
 export const logoutUser = async () => {
   try {
     await signOut(auth);

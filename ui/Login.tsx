@@ -15,7 +15,6 @@ import { ThemeContext } from "../constants/ThemeContext";
 import { loginUser, registerUser } from "../services/authService";
 import { useNavigation } from "@react-navigation/native";
 
-
 const Login = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,24 +38,19 @@ const Login = ({ onLoginSuccess }) => {
       }
 
       setLoading(true);
-      
+
       let user;
       if (activeTab === "login") {
         user = await loginUser(email, password);
       } else {
         user = await registerUser(email, password);
       }
-      
-      // Call the onLoginSuccess function passed from the parent component
+
       onLoginSuccess(user);
-      
-      // Clear the form
+
       setEmail("");
       setPassword("");
-      
-      // No need to navigate here as the parent component will handle navigation
-      // based on the updated user state
-      
+
     } catch (err: any) {
       let errorMessage = "An unexpected error occurred";
 
@@ -184,7 +178,7 @@ const Login = ({ onLoginSuccess }) => {
               style={[
                 styles.actionButton,
                 { backgroundColor: activeColors.primary },
-                loading && { opacity: 0.7 }
+                loading && { opacity: 0.7 },
               ]}
               onPress={handleAuth}
               disabled={loading}
@@ -195,11 +189,11 @@ const Login = ({ onLoginSuccess }) => {
                   { color: activeColors.onPrimaryContainer },
                 ]}
               >
-                {loading 
-                  ? "Please wait..." 
-                  : activeTab === "login" 
-                    ? "Login" 
-                    : "Register"}
+                {loading
+                  ? "Please wait..."
+                  : activeTab === "login"
+                  ? "Login"
+                  : "Register"}
               </Text>
             </TouchableOpacity>
           </View>

@@ -6,7 +6,7 @@ import Login from "../ui/Login";
 import LoadingScreen from "../ui/LoadingScreen";
 import Home from "../ui/Home";
 import Setting from "../ui/Setting";
-// import Chat from "../ui/Chat"; // Uncommented the Chat import
+import Chat from "../ui/Chat"; // Uncommented the Chat import
 import { colors } from "../config/theme";
 import { ThemeContext } from "../constants/ThemeContext";
 import { useContext } from "react";
@@ -19,7 +19,7 @@ const Stack = createStackNavigator();
 const StackNavigation = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const { theme } = useContext(ThemeContext); 
+  const { theme } = useContext(ThemeContext);
   const activeColors = colors[theme.mode];
 
   // Listen to authentication state changes
@@ -45,60 +45,26 @@ const StackNavigation = () => {
 
   return (
     <NavigationContainer>
-      <StatusBar barStyle={theme.mode === "dark" ? "light-content" : "dark-content"} />
-      <Stack.Navigator 
+      <StatusBar
+        barStyle={theme.mode === "dark" ? "light-content" : "dark-content"}
+      />
+      <Stack.Navigator
         initialRouteName={user ? "Home" : "Login"}
-        screenOptions={{ 
-          headerShown: true,
-          headerStyle: { 
-            backgroundColor: activeColors.primary,
-            elevation: 0,
-            shadowOpacity: 0,
-            borderBottomWidth: 1,
-            borderBottomColor: "#e5e5ea",
-          },
-          headerTitleStyle: {
-            color: activeColors.textPrimary,
-            fontSize: 18,
-            fontWeight: "600",
-          },
-          headerTintColor: activeColors.textPrimary
-        }}
+        screenOptions={{ headerShown: false }}
       >
         {!user ? (
           // No user is signed in, show Login screen
-          <Stack.Screen 
-            name="Login" 
-            options={{ headerShown: false }}
-          >
+          <Stack.Screen name="Login" options={{ headerShown: false }}>
             {(props) => <Login {...props} onLoginSuccess={handleAuthSuccess} />}
           </Stack.Screen>
         ) : (
           // User is signed in, show Home and other screens
           <>
-            <Stack.Screen name="Home" options={{
-              headerBackTitle: true,
-              headerTitleAlign: "left",
-            }}>
+            <Stack.Screen name="Home">
               {(props) => <Home {...props} user={user} />}
             </Stack.Screen>
-            <Stack.Screen 
-              name="Setting" 
-              component={Setting} 
-              options={{
-                headerBackTitle: true,
-                headerTitleAlign: "left",
-              }}
-            />
-            {/* <Stack.Screen 
-              name="Chat" 
-              component={Chat} 
-              options={({ route }) => ({ 
-                title: route.params?.recipientEmail || "Chat",
-                headerBackTitle: true,
-                headerTitleAlign: "left",
-              })}
-            /> */}
+            <Stack.Screen name="Setting" component={Setting} />
+            <Stack.Screen name="Chat" component={Chat} />
           </>
         )}
       </Stack.Navigator>

@@ -1,103 +1,98 @@
-import React, { useLayoutEffect, useCallback, useContext } from "react";
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, SafeAreaView } from "react-native";
+import React, { useCallback, useContext, useState, useEffect } from "react";
+import { View, FlatList, StyleSheet, SafeAreaView, Image } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { AntDesign } from "@expo/vector-icons";
+import { List, Button } from "react-native-paper";
 import { useHomeService } from "../services/homeService";
 import { colors } from "../config/theme";
 import { ThemeContext } from "../constants/ThemeContext";
-import { auth } from "../config/firebaseConfig";
+import { auth, firestore } from "../config/firebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
 
 const Home = () => {
   const navigation = useNavigation();
-  const { users, chatData, onSignOut } = useHomeService(navigation);
-  const { theme } = useContext(ThemeContext);
-  const activateColors = colors[theme.mode];
+  const { users, chatData } = useHomeService(navigation);
+  const { theme, updateTheme } = useContext(ThemeContext);
+  const activeColors = colors[theme.mode];
   const currentUserUid = auth.currentUser?.uid;
+  const [isDark, setDark] = useState(theme.mode === "dark");
+  const [userImages, setUserImages] = useState({});
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity onPress={onSignOut} style={styles.logoutButton}>
-          <AntDesign name="logout" size={24} color={activateColors.textPrimary} />
-        </TouchableOpacity>
-      ),
-      headerStyle: {
-        backgroundColor: activateColors.primary,
-        elevation: 0,
-      },
-      headerTintColor: activateColors.textPrimary,
-      headerTitleStyle: {
-        fontWeight: "bold",
-        fontSize: 20,
-      },
-    });
-  }, [navigation, activateColors]);
+  useEffect(() => {
+    const fetchUserImages = async () => {
+      let images = {};
+      for (const user of users) {
+        const userRef = doc(firestore, "users", user.id);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          images[user.id] = userSnap.data().photoURL || getDefaultAvatar(user.id);
+        } else {
+          images[user.id] = getDefaultAvatar(user.id);
+        }
+      }
+      setUserImages(images);
+    };
+
+    if (users.length > 0) fetchUserImages();
+  }, [users]);
+
+  const getDefaultAvatar = (id) => `https://randomuser.me/api/portraits/men/${id % 100}.jpg`;
 
   const renderUser = useCallback(({ item }) => {
     const userData = chatData[item.id] || { unreadCount: 0, lastMessage: null };
     const { unreadCount, lastMessage } = userData;
-
-    const lastMessageTime = lastMessage
-      ? new Date(lastMessage.createdAt).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      : "";
-
+    
     return (
-      <TouchableOpacity
-        style={[styles.userItem, unreadCount > 0 && styles.userItemUnread, { backgroundColor: activateColors.card }]}
-        onPress={() => {
-          navigation.navigate("Chat", {
-            recipientId: item.id,
-            recipientEmail: item.email,
-          });
-        }}
-      >
-        <View style={styles.userItemContent}>
-          <View style={styles.userInfo}>
-            <Text style={[styles.userEmail, unreadCount > 0 && styles.unreadText, { color: activateColors.textPrimary }]}>
-              {item.email}
-            </Text>
-            {lastMessage && (
-              <Text style={[styles.lastMessage, { color: activateColors.textSecondary }]} numberOfLines={1}>
-                {lastMessage.user._id === currentUserUid ? "You: " : ""}
-                {lastMessage.text}
-              </Text>
-            )}
-          </View>
-          <View style={styles.messageInfo}>
-            {lastMessageTime && <Text style={[styles.timeText, { color: activateColors.textSecondary }]}>{lastMessageTime}</Text>}
-            {unreadCount > 0 && (
-              <View style={[styles.notificationBubble, { backgroundColor: activateColors.primary }]}>
-                <Text style={styles.bubbleText}>{unreadCount}</Text>
-              </View>
-            )}
-          </View>
-        </View>
-      </TouchableOpacity>
+      <List.Item
+        title={item.email}
+        description={lastMessage
+          ? lastMessage.user._id === currentUserUid
+            ? `You: ${lastMessage.text}`
+            : lastMessage.text
+          : "No messages yet"
+        }
+        left={() => (
+          <Image 
+            source={{ uri: userImages[item.id] || getDefaultAvatar(item.id) }} 
+            style={styles.profileImage}
+          />
+        )}
+        right={() =>
+          unreadCount > 0 ? (
+            <View style={[styles.notificationBubble, { backgroundColor: activeColors.primary }]}>
+              <List.Icon icon="message" color="#FFF" />
+            </View>
+          ) : null
+        }
+        onPress={() => navigation.navigate("Chat", { recipientId: item.id, recipientEmail: item.email })}
+        style={[styles.userItem, { backgroundColor: activeColors.primarySurface }]}
+        titleStyle={{ color: activeColors.text }}
+        descriptionStyle={{ color: activeColors.onSurface60 }}
+      />
     );
-  }, [chatData, navigation, currentUserUid, activateColors]);
+  }, [chatData, navigation, currentUserUid, activeColors, userImages]);
 
-  const totalUnread = Object.values(chatData).reduce(
-    (sum, chat) => sum + (chat.unreadCount || 0),
-    0
-  );
+  const changeTheme = () => {
+    navigation.navigate('Setting');
+    updateTheme();
+    setDark(!isDark);
+  };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: activateColors.background }]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: activeColors.background }]}>
       <View style={styles.container}>
+        <Button
+          mode="contained"
+          onPress={changeTheme}
+          style={styles.themeButton}
+          labelStyle={{ color: activeColors.onPrimaryContainer }}
+        >
+          Toggle Theme
+        </Button>
+
         <FlatList
           data={users}
           renderItem={renderUser}
           keyExtractor={(item) => item.id}
-          ListHeaderComponent={
-            totalUnread > 0 ? (
-              <Text style={[styles.totalUnread, { color: activateColors.primary }]}>
-                {totalUnread} unread message{totalUnread !== 1 ? "s" : ""}
-              </Text>
-            ) : null
-          }
         />
       </View>
     </SafeAreaView>
@@ -112,65 +107,28 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  themeButton: {
+    marginBottom: 16,
+    borderRadius: 8,
+  },
   userItem: {
     borderRadius: 12,
-    padding: 16,
+    padding: 12,
     marginBottom: 8,
     borderWidth: 1,
   },
-  userItemUnread: {
-    opacity: 0.9,
-  },
-  userItemContent: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  userInfo: {
-    flex: 1,
-    marginRight: 16,
-  },
-  userEmail: {
-    fontSize: 16,
-    fontWeight: "500",
-    marginBottom: 4,
-  },
-  lastMessage: {
-    fontSize: 14,
-    marginTop: 2,
-  },
-  messageInfo: {
-    alignItems: "flex-end",
-  },
-  timeText: {
-    fontSize: 12,
-    marginBottom: 4,
-  },
   notificationBubble: {
-    borderRadius: 12,
-    minWidth: 24,
-    height: 24,
+    borderRadius: 24,
+    width: 32,
+    height: 32,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 8,
   },
-  bubbleText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  totalUnread: {
-    fontSize: 14,
-    fontWeight: "600",
-    textAlign: "center",
-    paddingVertical: 8,
-    marginBottom: 8,
-    borderRadius: 8,
-  },
-  unreadText: {
-    fontWeight: "600",
-  },
-  logoutButton: {
-    marginRight: 15,
+  profileImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 10,
   },
 });
 

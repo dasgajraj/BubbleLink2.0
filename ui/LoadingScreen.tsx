@@ -22,7 +22,7 @@ import {
         />
   
         <View style={styles.footerView}>
-          <Text style={styles.footerText}>__DAS GAJRAJ SHARMA</Text>
+          <Text style={styles.footerText}>V ~ 2.0.0</Text>
         </View>
       </View>
     );
