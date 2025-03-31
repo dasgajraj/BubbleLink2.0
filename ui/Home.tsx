@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useState, useEffect } from "react";
-import { View, FlatList, StyleSheet, SafeAreaView, Image } from "react-native";
+import { View, FlatList, StyleSheet, SafeAreaView, Image, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { List, Button } from "react-native-paper";
 import { useHomeService } from "../services/homeService";
@@ -10,10 +10,9 @@ import { doc, getDoc } from "firebase/firestore";
 
 const Home = () => {
   const navigation = useNavigation();
-  const { users, chatData } = useHomeService(navigation);
+  const { users } = useHomeService(navigation);
   const { theme, updateTheme } = useContext(ThemeContext);
   const activeColors = colors[theme.mode];
-  const currentUserUid = auth.currentUser?.uid;
   const [isDark, setDark] = useState(theme.mode === "dark");
   const [userImages, setUserImages] = useState({});
 
@@ -38,38 +37,23 @@ const Home = () => {
   const getDefaultAvatar = (id) => `https://randomuser.me/api/portraits/men/${id % 100}.jpg`;
 
   const renderUser = useCallback(({ item }) => {
-    const userData = chatData[item.id] || { unreadCount: 0, lastMessage: null };
-    const { unreadCount, lastMessage } = userData;
-    
     return (
       <List.Item
         title={item.email}
-        description={lastMessage
-          ? lastMessage.user._id === currentUserUid
-            ? `You: ${lastMessage.text}`
-            : lastMessage.text
-          : "No messages yet"
-        }
         left={() => (
-          <Image 
-            source={{ uri: userImages[item.id] || getDefaultAvatar(item.id) }} 
-            style={styles.profileImage}
-          />
+          <TouchableOpacity onPress={() => navigation.navigate("Profile", { userId: item.id })}>
+            <Image 
+              source={{ uri: userImages[item.id] || getDefaultAvatar(item.id) }} 
+              style={styles.profileImage}
+            />
+          </TouchableOpacity>
         )}
-        right={() =>
-          unreadCount > 0 ? (
-            <View style={[styles.notificationBubble, { backgroundColor: activeColors.primary }]}>
-              <List.Icon icon="message" color="#FFF" />
-            </View>
-          ) : null
-        }
         onPress={() => navigation.navigate("Chat", { recipientId: item.id, recipientEmail: item.email })}
         style={[styles.userItem, { backgroundColor: activeColors.primarySurface }]}
         titleStyle={{ color: activeColors.text }}
-        descriptionStyle={{ color: activeColors.onSurface60 }}
       />
     );
-  }, [chatData, navigation, currentUserUid, activeColors, userImages]);
+  }, [navigation, activeColors, userImages]);
 
   const changeTheme = () => {
     navigation.navigate('Setting');
@@ -116,13 +100,6 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 8,
     borderWidth: 1,
-  },
-  notificationBubble: {
-    borderRadius: 24,
-    width: 32,
-    height: 32,
-    justifyContent: "center",
-    alignItems: "center",
   },
   profileImage: {
     width: 50,

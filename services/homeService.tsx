@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
-import { collection, query, onSnapshot, getDocs } from "firebase/firestore";
-import { auth, firestore } from "../config/firebaseConfig"; // Ensure Firestore is imported
+import { collection, getDocs } from "firebase/firestore";
+import { auth, firestore } from "../config/firebaseConfig";
 import { signOut } from "firebase/auth";
 
 export const useHomeService = (navigation) => {
   const [users, setUsers] = useState([]);
-  const [chatData, setChatData] = useState({});
-  const currentUserUid = auth.currentUser?.uid;
 
   const onSignOut = () => {
     signOut(auth).catch((error) => console.log("Error logging out: ", error));
@@ -36,51 +34,5 @@ export const useHomeService = (navigation) => {
     fetchUsers();
   }, []);
 
-  // Listen for chat messages in Firestore
-  useEffect(() => {
-    if (!currentUserUid) return;
-
-    const messagesRef = collection(firestore, "messages");
-    const unsubscribe = onSnapshot(messagesRef, (snapshot) => {
-      const newChatData = {};
-
-      snapshot.docs.forEach((chatDoc) => {
-        const chatId = chatDoc.id;
-        if (!chatId.includes(currentUserUid)) return;
-
-        const messages = chatDoc.data().messages || [];
-        let unreadCount = 0;
-        let lastMessage = null;
-
-        messages.forEach((message) => {
-          if (
-            message.user._id !== currentUserUid &&
-            (message.status === "sent" || message.status === "delivered")
-          ) {
-            unreadCount++;
-          }
-
-          if (!lastMessage || message.createdAt > lastMessage.createdAt) {
-            lastMessage = message;
-          }
-        });
-
-        const otherUserId = chatId.split("_").find((id) => id !== currentUserUid);
-
-        if (otherUserId) {
-          newChatData[otherUserId] = {
-            unreadCount,
-            lastMessage,
-            messages: messages.sort((a, b) => b.createdAt - a.createdAt),
-          };
-        }
-      });
-
-      setChatData(newChatData);
-    });
-
-    return () => unsubscribe();
-  }, [currentUserUid]);
-
-  return { users, chatData, onSignOut };
+  return { users, onSignOut };
 };

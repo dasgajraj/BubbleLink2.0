@@ -11,7 +11,8 @@ import { colors } from "../config/theme";
 import { ThemeContext } from "../constants/ThemeContext";
 import { useContext } from "react";
 import { auth } from "../config/firebaseConfig";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth"
+import Profile from "../ui/Profile"; // Uncommented the Profile import
 
 // Create Stack Navigator
 const Stack = createStackNavigator();
@@ -65,6 +66,7 @@ const StackNavigation = () => {
             </Stack.Screen>
             <Stack.Screen name="Setting" component={Setting} />
             <Stack.Screen name="Chat" component={Chat} />
+            <Stack.Screen name="Profile" component={Profile} />
           </>
         )}
       </Stack.Navigator>
