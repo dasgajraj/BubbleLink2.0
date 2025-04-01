@@ -23,7 +23,6 @@ import {
 } from 'react-native-paper';
 import { 
   subscribeToMessages, 
-  markMessagesAsRead, 
   sendMessage as sendMessageService,
   Message
 } from "../services/chatService";
@@ -74,15 +73,6 @@ export default function Chat() {
     return unsubscribe;
   }, [recipientId]);
 
-  // Mark messages as read
-  useEffect(() => {
-    if (messages.length > 0) {
-      markMessagesAsRead(messages, recipientId).catch(err => 
-        console.error("Error marking messages as read:", err)
-      );
-    }
-  }, [messages, recipientId]);
-
   // Send a message
   const sendMessage = useCallback(async () => {
     if (!inputText.trim() || sending) return;
@@ -110,14 +100,6 @@ export default function Chat() {
       hour: "2-digit",
       minute: "2-digit",
     });
-
-    const statusText = isCurrentUser
-      ? item.status === "read"
-        ? "Read"
-        : item.status === "delivered"
-          ? "Delivered"
-          : "Sent"
-      : "";
 
     return (
       <View
@@ -160,20 +142,6 @@ export default function Chat() {
             >
               {formattedTime}
             </Text>
-            {isCurrentUser && (
-              <Text
-                style={[
-                  styles.statusText,
-                  item.status === "read"
-                    ? styles.readStatus
-                    : item.status === "delivered"
-                      ? styles.deliveredStatus
-                      : styles.sentStatus,
-                ]}
-              >
-                {statusText}
-              </Text>
-            )}
           </Surface>
         </View>
       </View>
@@ -303,20 +271,6 @@ const styles = StyleSheet.create({
   },
   otherUserTime: {
     color: "#94A3B8",
-  },
-  statusText: {
-    fontSize: 12,
-    marginTop: 4,
-    textAlign: "right",
-  },
-  readStatus: {
-    color: "#10B981", // Green for read
-  },
-  deliveredStatus: {
-    color: "#3B82F6", // Blue for delivered
-  },
-  sentStatus: {
-    color: "#64748B", // Gray for sent
   },
   avatar: {
     backgroundColor: "#6366F1",

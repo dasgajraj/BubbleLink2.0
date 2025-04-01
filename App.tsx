@@ -4,7 +4,7 @@ import { useState } from "react";
 import { StatusBar } from "react-native";
 const App = () => {
   
-  const [theme, setTheme] = useState({ mode: "light" });
+  const [theme, setTheme] = useState({ mode: "dark" });
   const updateTheme = (newTheme) => {
     let mode;
     if (!newTheme) {

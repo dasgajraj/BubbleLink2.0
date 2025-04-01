@@ -1,38 +1,36 @@
 export const colors = {
   light: {
-    primary: "#1B72C0", // Vibrant Blue
-    primaryContainer: "#D3E4FF",
-    onPrimaryContainer: "#001C38",
-    primarySurface: "#F3F4F9",
-    secondarySurface: "#EFF1F8",
-    background: "#FCFCFF",
-    onSurface20: "#001E2F",
-    onSurface40: "#44474E",
-    onSurface60: "#74777F",
-    
-    // Additional colors from previous configuration
-    secondary: "#EFF1F8",
+    primary: "#1976D2", // Deep Blue
+    primaryContainer: "#E3F2FD", // Light Blue
+    onPrimaryContainer: "#0D47A1", // Dark Blue
+    primarySurface: "#F9FAFB",
+    secondarySurface: "#E0E0E0",
+    background: "#FFFFFF",
+    onSurface20: "#1A237E", // Dark Indigo
+    onSurface40: "#3949AB",
+    onSurface60: "#5C6BC0",
+
+    secondary: "#B3E5FC",
     error: "#D32F2F",
-    text: "#001e2f",
+    text: "#0D1B2A",
     disabled: "#BDBDBD",
-    placeholder: "#74777F",
+    placeholder: "#9E9E9E",
   },
   dark: {
-    primary: "#A2C9FF", // Light Sky Blue
-    primaryContainer: "#2F4156",
-    onPrimaryContainer: "#D7E2FF",
-    primarySurface: "#1E2A32",
-    secondarySurface: "#0E181E",
-    background: "#0E181E",
-    onSurface20: "#E0F1FF",
-    onSurface40: "#E0F1FF",
-    onSurface60: "#E0F1FF",
-    
-    // Additional colors from previous configuration
-    secondary: "#42A5F5",
-    error: "#E57373",
-    text: "#FFFFFF",
-    disabled: "#757575",
+    primary: "#90CAF9", // Sky Blue
+    primaryContainer: "#263238", // Deep Grey
+    onPrimaryContainer: "#BBDEFB", // Soft Blue
+    primarySurface: "#121212", // Dark Theme Black
+    secondarySurface: "#1E272E",
+    background: "#121212",
+    onSurface20: "#B3E5FC",
+    onSurface40: "#81D4FA",
+    onSurface60: "#4FC3F7",
+
+    secondary: "#64B5F6",
+    error: "#EF5350",
+    text: "#E3F2FD",
+    disabled: "#616161",
     placeholder: "#B0BEC5",
-  }
+  },
 };
