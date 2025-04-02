@@ -1,11 +1,9 @@
-import React, { useState, useLayoutEffect, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useContext } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
   FlatList,
   StyleSheet,
-  Image,
   Dimensions,
 } from "react-native";
 import { signOut } from "firebase/auth";
@@ -16,16 +14,17 @@ import {
   TextInput, 
   IconButton, 
   ActivityIndicator, 
-  Surface, 
+  Surface,
   useTheme,
-  Provider as PaperProvider,
-  MD3Colors,
 } from 'react-native-paper';
 import { 
   subscribeToMessages, 
   sendMessage as sendMessageService,
   Message
 } from "../services/chatService";
+import { colors } from "../config/theme";
+import { ThemeContext } from "../constants/ThemeContext";
+import { CustomAppBar } from '../component/AppBar';
 
 const { width } = Dimensions.get("window");
 
@@ -37,35 +36,15 @@ export default function Chat() {
   const navigation = useNavigation();
   const route = useRoute();
   const { recipientId, recipientEmail } = route.params;
-  const theme = useTheme();
+  const { theme } = useContext(ThemeContext);
+  const activeColors = colors[theme.mode];
+  const [isDark] = useState(theme.mode === "dark");
+  const paperTheme = useTheme();
 
   const onSignOut = () => {
     signOut(auth).catch((error) => console.log("Error logging out: ", error));
     navigation.navigate("Login");
   };
-
-  // Configure navigation header
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <IconButton
-          icon="logout"
-          iconColor={theme.colors.primary}
-          size={24}
-          onPress={onSignOut}
-          style={styles.logoutButton}
-        />
-      ),
-      headerStyle: {
-        backgroundColor: theme.colors.background,
-      },
-      headerTintColor: theme.colors.primary,
-      headerTitleStyle: {
-        fontWeight: "600",
-      },
-      title: recipientEmail,
-    });
-  }, [navigation, recipientEmail, theme]);
 
   // Subscribe to messages
   useEffect(() => {
@@ -83,7 +62,6 @@ export default function Chat() {
       setInputText("");
     } catch (error) {
       console.error("Error sending message:", error);
-      // Could show a Snackbar here with Paper
     } finally {
       setSending(false);
     }
@@ -116,20 +94,27 @@ export default function Chat() {
           />
         )}
         <View>
-          <Text style={isCurrentUser ? styles.userIdTextOther : styles.userIdTextCurrent}>
+          <Text style={[
+            isCurrentUser ? styles.userIdTextOther : styles.userIdTextCurrent,
+            { color: activeColors.textSecondary }
+          ]}>
             {isCurrentUser ? "You" : item.user.email}
           </Text>
           <Surface
             style={[
               styles.messageContainer,
-              isCurrentUser ? styles.currentUserMessage : styles.otherUserMessage,
+              isCurrentUser 
+                ? [styles.currentUserMessage, { backgroundColor: activeColors.primary }]
+                : [styles.otherUserMessage, { backgroundColor: activeColors.card }],
             ]}
             elevation={1}
           >
             <Text
               style={[
                 styles.messageText,
-                isCurrentUser ? styles.currentUserText : styles.otherUserText,
+                isCurrentUser 
+                  ? [styles.currentUserText, { color: activeColors.textOnPrimary }]
+                  : [styles.otherUserText, { color: activeColors.text }],
               ]}
             >
               {item.text}
@@ -137,7 +122,9 @@ export default function Chat() {
             <Text
               style={[
                 styles.timeText,
-                isCurrentUser ? styles.currentUserTime : styles.otherUserTime,
+                isCurrentUser 
+                  ? [styles.currentUserTime, { color: activeColors.textOnPrimaryMuted }]
+                  : [styles.otherUserTime, { color: activeColors.textMuted }],
               ]}
             >
               {formattedTime}
@@ -155,58 +142,84 @@ export default function Chat() {
     }
   }, [messages.length]);
 
-  return (
-    <PaperProvider>
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={(item) => item._id}
-          contentContainerStyle={styles.messagesList}
-          onContentSizeChange={onContentSizeChange}
-          ListEmptyComponent={() => (
-            <View style={styles.emptyContainer}>
-              <Text style={[styles.emptyText, { color: theme.colors.outline }]}>
-                No messages yet. Say hello!
-              </Text>
-            </View>
-          )}
-        />
+  // Define the app bar actions
+  const appBarActions = [
+    {
+      icon: 'phone',
+      onPress: () => {},
+    },
+    {
+      icon: 'dots-vertical',
+      onPress: () => {},
+    },
+  ];
 
-        <Surface style={styles.inputContainer} elevation={4}>
+  // Navigate to user profile when title is pressed
+  const handleTitlePress = () => {
+    navigation.navigate("Profile", { userId: recipientId });
+  };
+
+  return (
+    <View style={[styles.container, { backgroundColor: activeColors.background }]}>
+      
+      <CustomAppBar
+        title={recipientEmail}
+        subtitle={`ID: ${recipientId}`}
+        showBack={true}
+        actions={appBarActions}
+        onTitlePress={handleTitlePress}
+      />
+      
+      <FlatList
+        ref={flatListRef}
+        data={messages}
+        renderItem={renderMessage}
+        keyExtractor={(item) => item._id}
+        contentContainerStyle={styles.messagesList}
+        onContentSizeChange={onContentSizeChange}
+        ListEmptyComponent={() => (
+          <View style={styles.emptyContainer}>
+            <Text style={[styles.emptyText, { color: activeColors.textSecondary }]}>
+              No messages yet. Say hello!
+            </Text>
+          </View>
+        )}
+      />
+
+      <Surface style={[styles.inputContainer, { backgroundColor: activeColors.card }]} elevation={4}>
+        <IconButton
+          icon="paperclip"
+          size={24}
+          iconColor={activeColors.primary}
+          onPress={() => {}}
+        />
+        <TextInput
+          style={[styles.input, { backgroundColor: 'transparent', color: activeColors.text }]}
+          value={inputText}
+          onChangeText={setInputText}
+          placeholder="Type a message..."
+          placeholderTextColor={activeColors.textSecondary}
+          multiline
+          mode="outlined"
+          outlineColor={activeColors.border}
+          activeOutlineColor={activeColors.primary}
+          textColor={activeColors.text}
+          maxHeight={100}
+        />
+        {sending ? (
+          <ActivityIndicator size="small" color={activeColors.primary} style={styles.sendButton} />
+        ) : (
           <IconButton
-            icon="paperclip"
+            icon="send"
             size={24}
-            iconColor={theme.colors.primary}
-            onPress={() => {}}
+            iconColor={inputText.trim() && !sending ? activeColors.primary : activeColors.textSecondary}
+            onPress={sendMessage}
+            disabled={!inputText.trim() || sending}
+            style={styles.sendButton}
           />
-          <TextInput
-            style={styles.input}
-            value={inputText}
-            onChangeText={setInputText}
-            placeholder="Type a message..."
-            multiline
-            mode="outlined"
-            outlineColor={theme.colors.surfaceVariant}
-            activeOutlineColor={theme.colors.primary}
-            maxHeight={100}
-          />
-          {sending ? (
-            <ActivityIndicator size="small" color={theme.colors.primary} style={styles.sendButton} />
-          ) : (
-            <IconButton
-              icon="send"
-              size={24}
-              iconColor={inputText.trim() && !sending ? theme.colors.primary : theme.colors.outline}
-              onPress={sendMessage}
-              disabled={!inputText.trim() || sending}
-              style={styles.sendButton}
-            />
-          )}
-        </Surface>
-      </View>
-    </PaperProvider>
+        )}
+      </Surface>
+    </View>
   );
 }
 
@@ -245,35 +258,24 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
   },
   currentUserMessage: {
-    backgroundColor: "#6366F1",
     borderTopRightRadius: 4,
   },
   otherUserMessage: {
-    backgroundColor: "#FFFFFF",
     borderTopLeftRadius: 4,
   },
   messageText: {
     fontSize: 16,
     lineHeight: 22,
   },
-  currentUserText: {
-    color: "#FFFFFF",
-  },
-  otherUserText: {
-    color: "#1E293B",
-  },
+  currentUserText: {},
+  otherUserText: {},
   timeText: {
     fontSize: 12,
     marginTop: 4,
   },
-  currentUserTime: {
-    color: "#E2E8F0",
-  },
-  otherUserTime: {
-    color: "#94A3B8",
-  },
+  currentUserTime: {},
+  otherUserTime: {},
   avatar: {
-    backgroundColor: "#6366F1",
     marginBottom: 4,
   },
   inputContainer: {
@@ -284,24 +286,18 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     maxHeight: 100,
-    backgroundColor: "transparent",
   },
   sendButton: {
     margin: 4,
   },
-  logoutButton: {
-    marginRight: 8,
-  },
   userIdTextCurrent: {
     fontSize: 12,
-    color: "#64748B",
     marginBottom: 4,
     marginLeft: 40,
     textAlign: "left",
   },
   userIdTextOther: {
     fontSize: 12,
-    color: "#64748B",
     marginBottom: 4,
     marginRight: 40,
     textAlign: "right",
