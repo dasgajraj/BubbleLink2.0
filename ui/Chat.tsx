@@ -17,15 +17,23 @@ import {
   useTheme,
 } from "react-native-paper";
 import {
-  subscribeToMessages,
   sendMessage as sendMessageService,
-  Message,
+  listenMessages,
 } from "../services/chatService";
 import { colors } from "../config/theme";
 import { ThemeContext } from "../constants/ThemeContext";
 import { CustomAppBar } from "../component/AppBar";
 
 const { width } = Dimensions.get("window");
+
+// Define message type based on your chat service
+interface Message {
+  id: string;
+  text: string;
+  sender: string;
+  receiver: string;
+  createdAt: any;
+}
 
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -39,31 +47,41 @@ export default function Chat() {
   const activeColors = colors[theme.mode];
   const [isDark] = useState(theme.mode === "dark");
   const paperTheme = useTheme();
+  const currentUserId = auth.currentUser?.uid;
 
   // Subscribe to messages
   useEffect(() => {
-    const unsubscribe = subscribeToMessages(recipientId, setMessages);
+    const unsubscribe = listenMessages((allMessages) => {
+      // Filter messages that are between current user and recipient
+      const relevantMessages = allMessages.filter(
+        (msg) =>
+          (msg.sender === currentUserId && msg.receiver === recipientId) ||
+          (msg.sender === recipientId && msg.receiver === currentUserId)
+      );
+      setMessages(relevantMessages);
+    });
+    
     return unsubscribe;
-  }, [recipientId]);
+  }, [recipientId, currentUserId]);
 
   // Send a message
   const sendMessage = useCallback(async () => {
-    if (!inputText.trim() || sending) return;
+    if (!inputText.trim() || sending || !currentUserId) return;
 
     try {
       setSending(true);
-      await sendMessageService(inputText, recipientId);
+      await sendMessageService(inputText, currentUserId, recipientId);
       setInputText("");
     } catch (error) {
       console.error("Error sending message:", error);
     } finally {
       setSending(false);
     }
-  }, [inputText, recipientId, sending]);
+  }, [inputText, recipientId, sending, currentUserId]);
 
   // Render a message item
   const renderMessage = ({ item }: { item: Message }) => {
-    const isCurrentUser = item.user._id === auth.currentUser?.uid;
+    const isCurrentUser = item.sender === currentUserId;
     const timestamp =
       typeof item.createdAt === "number"
         ? new Date(item.createdAt)
@@ -73,6 +91,10 @@ export default function Chat() {
       hour: "2-digit",
       minute: "2-digit",
     });
+
+    const userEmail = isCurrentUser 
+      ? auth.currentUser?.email || "You"
+      : recipientEmail;
 
     return (
       <View
@@ -84,7 +106,7 @@ export default function Chat() {
         {!isCurrentUser && (
           <Avatar.Text
             size={32}
-            label={item.user.email.substring(0, 2).toUpperCase()}
+            label={recipientEmail.substring(0, 2).toUpperCase()}
             style={styles.avatar}
           />
         )}
@@ -95,7 +117,7 @@ export default function Chat() {
               { color: activeColors.textSecondary },
             ]}
           >
-            {isCurrentUser ? "You" : item.user.email}
+            {isCurrentUser ? "You" : userEmail}
           </Text>
           <Surface
             style={[
@@ -184,7 +206,7 @@ export default function Chat() {
         ref={flatListRef}
         data={messages}
         renderItem={renderMessage}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item) => item.id}
         contentContainerStyle={styles.messagesList}
         onContentSizeChange={onContentSizeChange}
         ListEmptyComponent={() => (
