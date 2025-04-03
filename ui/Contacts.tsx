@@ -1,30 +1,29 @@
-import React, { useState, useContext, useCallback } from 'react';
-import { 
-  View, 
-  SafeAreaView, 
-  StyleSheet, 
-  FlatList, 
-  TouchableOpacity, 
-  TextInput
-} from 'react-native';
-import { 
-  List, 
-  Divider, 
-  Text, 
-  Avatar
-} from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import { getAllContacts, searchContactsByName, Contact } from '../data/contactData';
-import { ThemeContext } from '../constants/ThemeContext';
-import { colors } from '../config/theme';
+import React, { useState, useContext, useCallback } from "react";
+import {
+  View,
+  SafeAreaView,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  TextInput,
+} from "react-native";
+import { List, Divider, Text, Avatar } from "react-native-paper";
+import { useNavigation } from "@react-navigation/native";
+import Icon from "react-native-vector-icons/MaterialIcons";
+import {
+  getAllContacts,
+  searchContactsByName,
+  Contact,
+} from "../data/contactData";
+import { ThemeContext } from "../constants/ThemeContext";
+import { colors } from "../config/theme";
 
 const Contacts = () => {
   const navigation = useNavigation();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const { theme } = useContext(ThemeContext);
   const activeColors = colors[theme.mode];
-  
+
   // Get contacts based on search
   const getFilteredContacts = () => {
     if (searchQuery.trim()) {
@@ -32,18 +31,18 @@ const Contacts = () => {
     }
     return getAllContacts();
   };
-  
+
   const contacts = getFilteredContacts();
-  
+
   // Format date to display "Today", "Yesterday", or date
   const formatLastContactedDate = (dateString) => {
     if (!dateString) return "Never";
-    
+
     const contactDate = new Date(dateString);
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    
+
     if (contactDate.toDateString() === today.toDateString()) {
       return "Today";
     } else if (contactDate.toDateString() === yesterday.toDateString()) {
@@ -52,40 +51,47 @@ const Contacts = () => {
       return contactDate.toLocaleDateString();
     }
   };
-  
-  const renderContactItem = useCallback(({ item }: { item: Contact }) => {
-    return (
-      <List.Item
-        title={item.name}
-        description={item.phoneNumber}
-        left={() => (
-          <Avatar.Image 
-            source={{ uri: item.avatar }} 
-            size={50} 
-          />
-        )}
-        right={() => (
-          <View style={styles.rightContent}>
-            <Text style={[styles.lastContacted, { color: activeColors.text + '80' }]}>
-              {formatLastContactedDate(item.lastContacted)}
-            </Text>
-          </View>
-        )}
-        style={[styles.contactItem, { backgroundColor: activeColors.primarySurface }]}
-        titleStyle={{ color: activeColors.text, fontWeight: '500' }}
-        descriptionStyle={{ color: activeColors.text + 'CC' }}
-      />
-    );
-  }, [navigation, activeColors]);
-  
+
+  const renderContactItem = useCallback(
+    ({ item }: { item: Contact }) => {
+      return (
+        <List.Item
+          title={item.name}
+          description={item.phoneNumber}
+          left={() => <Avatar.Image source={{ uri: item.avatar }} size={50} />}
+          style={[
+            styles.contactItem,
+            { backgroundColor: activeColors.primarySurface },
+          ]}
+          titleStyle={{ color: activeColors.text, fontWeight: "500" }}
+          descriptionStyle={{ color: activeColors.text + "CC" }}
+        />
+      );
+    },
+    [navigation, activeColors]
+  );
+
   const ListHeaderComponent = () => (
     <View style={styles.headerContainer}>
-      <View style={[styles.searchContainer, { backgroundColor: activeColors.primarySurface, borderColor: activeColors.border }]}>
-        <Icon name="search" size={24} color={activeColors.text} style={styles.searchIcon} />
+      <View
+        style={[
+          styles.searchContainer,
+          {
+            backgroundColor: activeColors.primarySurface,
+            borderColor: activeColors.border,
+          },
+        ]}
+      >
+        <Icon
+          name="search"
+          size={24}
+          color={activeColors.text}
+          style={styles.searchIcon}
+        />
         <TextInput
           style={[styles.searchInput, { color: activeColors.text }]}
           placeholder="Search contacts..."
-          placeholderTextColor={activeColors.text + '80'}
+          placeholderTextColor={activeColors.text + "80"}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
@@ -97,20 +103,22 @@ const Contacts = () => {
       </View>
     </View>
   );
-  
+
   const ListEmptyComponent = () => (
     <View style={styles.emptyContainer}>
       <Icon name="person-search" size={60} color={activeColors.primary} />
       <Text style={[styles.emptyText, { color: activeColors.text }]}>
-        {searchQuery.length > 0 
-          ? "No contacts found matching your search" 
+        {searchQuery.length > 0
+          ? "No contacts found matching your search"
           : "You don't have any contacts yet"}
       </Text>
     </View>
   );
-  
+
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: activeColors.background }]}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: activeColors.background }]}
+    >
       <View style={styles.container}>
         <FlatList
           data={contacts}
@@ -118,7 +126,9 @@ const Contacts = () => {
           keyExtractor={(item) => item.id}
           ListHeaderComponent={ListHeaderComponent}
           ListEmptyComponent={ListEmptyComponent}
-          ItemSeparatorComponent={() => <Divider style={{ backgroundColor: activeColors.border }} />}
+          ItemSeparatorComponent={() => (
+            <Divider style={{ backgroundColor: activeColors.border }} />
+          )}
           contentContainerStyle={contacts.length === 0 ? { flex: 1 } : null}
         />
       </View>
@@ -138,8 +148,8 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderRadius: 12,
     padding: 8,
     borderWidth: 1,
@@ -157,9 +167,9 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   rightContent: {
-    flexDirection: 'column',
-    alignItems: 'flex-end',
-    justifyContent: 'center',
+    flexDirection: "column",
+    alignItems: "flex-end",
+    justifyContent: "center",
     marginRight: 8,
   },
   lastContacted: {
@@ -167,15 +177,15 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 40,
   },
   emptyText: {
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 16,
-  }
+  },
 });
 
 export default Contacts;

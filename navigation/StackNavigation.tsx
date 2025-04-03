@@ -47,8 +47,12 @@ const StackNavigation = () => {
           <Stack.Screen name="Login" component={Login} />
         ) : (
           <>
-           <Stack.Screen name="Chat" component={Chat}/>
-            <Stack.Screen name="MyTabs" component={MyTabs} initialParams={{ userId: user?.uid }} />
+            <Stack.Screen name="Chat" component={Chat} />
+            <Stack.Screen
+              name="MyTabs"
+              component={MyTabs}
+              initialParams={{ userId: user?.uid }}
+            />
             <Stack.Screen name="Profile" component={Profile} />
           </>
         )}

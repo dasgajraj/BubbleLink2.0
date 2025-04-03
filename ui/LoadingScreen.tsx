@@ -4,7 +4,7 @@ import {
   Text,
   View,
   StatusBar,
-  ActivityIndicator
+  ActivityIndicator,
 } from "react-native";
 import { ThemeContext } from "../constants/ThemeContext"; // Import your theme context
 
@@ -12,10 +12,17 @@ const LoadingScreen = () => {
   const { theme, isDarkMode } = useContext(ThemeContext); // Get theme and dark mode status from context
 
   return (
-    <View style={[styles.view, { backgroundColor: theme.background }]}> 
+    <View style={[styles.view, { backgroundColor: theme.background }]}>
       <StatusBar hidden />
 
-      <Text style={[styles.MainText, { color: isDarkMode ? "#000000" : theme.primary }]}>Bubble Link</Text>
+      <Text
+        style={[
+          styles.MainText,
+          { color: isDarkMode ? "#000000" : theme.primary },
+        ]}
+      >
+        Bubble Link
+      </Text>
       <ActivityIndicator
         animating={true}
         color={theme.primary}
@@ -24,7 +31,9 @@ const LoadingScreen = () => {
       />
 
       <View style={styles.footerView}>
-        <Text style={[styles.footerText, { color: theme.secondary }]}>V ~ 2.0.0</Text>
+        <Text style={[styles.footerText, { color: theme.secondary }]}>
+          V ~ 2.0.0
+        </Text>
       </View>
     </View>
   );

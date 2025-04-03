@@ -4,13 +4,7 @@ export interface Contact {
     phoneNumber: string;
     email: string;
     avatar: string;
-    lastContacted?: string; // ISO date string
   }
-  
-  const generateRandomDate = (start: Date, end: Date): string => {
-    const date = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-    return date.toISOString();
-  };
   
   // Function to generate a random avatar URL
   const getRandomAvatar = (id: string): string => {
@@ -26,7 +20,6 @@ export interface Contact {
       phoneNumber: '+1 (555) 123-4567',
       email: 'john.smith@example.com',
       avatar: getRandomAvatar('1'),
-      lastContacted: generateRandomDate(new Date(2023, 0, 1), new Date())
     },
     {
       id: '2',
@@ -34,7 +27,6 @@ export interface Contact {
       phoneNumber: '+1 (555) 234-5678',
       email: 'emily.johnson@example.com',
       avatar: getRandomAvatar('2'),
-      lastContacted: generateRandomDate(new Date(2023, 0, 1), new Date())
     },
     {
       id: '3',
@@ -42,7 +34,6 @@ export interface Contact {
       phoneNumber: '+1 (555) 345-6789',
       email: 'michael.brown@example.com',
       avatar: getRandomAvatar('3'),
-      lastContacted: generateRandomDate(new Date(2023, 0, 1), new Date())
     },
     {
       id: '4',
@@ -50,7 +41,6 @@ export interface Contact {
       phoneNumber: '+1 (555) 456-7890',
       email: 'jessica.davis@example.com',
       avatar: getRandomAvatar('4'),
-      lastContacted: generateRandomDate(new Date(2023, 0, 1), new Date())
     },
     {
       id: '5',
@@ -58,7 +48,6 @@ export interface Contact {
       phoneNumber: '+1 (555) 567-8901',
       email: 'david.miller@example.com',
       avatar: getRandomAvatar('5'),
-      lastContacted: generateRandomDate(new Date(2023, 0, 1), new Date())
     },
     {
       id: '6',
@@ -66,7 +55,6 @@ export interface Contact {
       phoneNumber: '+1 (555) 678-9012',
       email: 'sarah.wilson@example.com',
       avatar: getRandomAvatar('6'),
-      lastContacted: generateRandomDate(new Date(2023, 0, 1), new Date())
     },
     {
       id: '7',
@@ -74,7 +62,6 @@ export interface Contact {
       phoneNumber: '+1 (555) 789-0123',
       email: 'robert.taylor@example.com',
       avatar: getRandomAvatar('7'),
-      lastContacted: generateRandomDate(new Date(2023, 0, 1), new Date())
     },
     {
       id: '8',
@@ -82,7 +69,6 @@ export interface Contact {
       phoneNumber: '+1 (555) 890-1234',
       email: 'jennifer.anderson@example.com',
       avatar: getRandomAvatar('8'),
-      lastContacted: generateRandomDate(new Date(2023, 0, 1), new Date())
     },
     {
       id: '9',
@@ -90,7 +76,6 @@ export interface Contact {
       phoneNumber: '+1 (555) 901-2345',
       email: 'william.thomas@example.com',
       avatar: getRandomAvatar('9'),
-      lastContacted: generateRandomDate(new Date(2023, 0, 1), new Date())
     },
    
   ];

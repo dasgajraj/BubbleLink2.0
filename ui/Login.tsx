@@ -50,7 +50,6 @@ const Login = ({ onLoginSuccess }) => {
 
       setEmail("");
       setPassword("");
-
     } catch (err: any) {
       let errorMessage = "An unexpected error occurred";
 

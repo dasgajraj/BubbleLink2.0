@@ -32,7 +32,9 @@ const Setting = () => {
         const userRef = doc(firestore, "users", currentUser.uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
-          setProfilePic(userSnap.data().photoURL || getDefaultAvatar(currentUser.uid));
+          setProfilePic(
+            userSnap.data().photoURL || getDefaultAvatar(currentUser.uid)
+          );
         } else {
           setProfilePic(getDefaultAvatar(currentUser.uid));
         }
@@ -42,7 +44,8 @@ const Setting = () => {
     }
   }, []);
 
-  const getDefaultAvatar = (uid) => `https://randomuser.me/api/portraits/men/${uid % 100}.jpg`;
+  const getDefaultAvatar = (uid) =>
+    `https://randomuser.me/api/portraits/men/${uid % 100}.jpg`;
 
   const handleSignOut = () => {
     setSignOutModalVisible(true);
@@ -62,12 +65,18 @@ const Setting = () => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: activeColors.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: activeColors.background }]}
+    >
       {user && (
         <View style={styles.profileContainer}>
           <Image source={{ uri: profilePic }} style={styles.profileImage} />
-          <Text style={[styles.text, { color: activeColors.text }]}>{user.name}</Text>
-          <Text style={[styles.email, { color: activeColors.onSurface60 }]}>{user.email}</Text>
+          <Text style={[styles.text, { color: activeColors.text }]}>
+            {user.name}
+          </Text>
+          <Text style={[styles.email, { color: activeColors.onSurface60 }]}>
+            {user.email}
+          </Text>
         </View>
       )}
 
@@ -77,7 +86,9 @@ const Setting = () => {
           <List.Item
             title="Dark Mode"
             titleStyle={{ color: activeColors.text }}
-            left={() => <List.Icon icon="theme-light-dark" color={activeColors.text} />}
+            left={() => (
+              <List.Icon icon="theme-light-dark" color={activeColors.text} />
+            )}
             right={() => (
               <Switch
                 value={isDark}
@@ -97,7 +108,9 @@ const Setting = () => {
           <List.Item
             title="Privacy"
             titleStyle={{ color: activeColors.text }}
-            left={() => <List.Icon icon="shield-lock" color={activeColors.text} />}
+            left={() => (
+              <List.Icon icon="shield-lock" color={activeColors.text} />
+            )}
             onPress={() => {
               // Show privacy settings alert
             }}
@@ -105,7 +118,9 @@ const Setting = () => {
           <List.Item
             title="Blocked Contacts"
             titleStyle={{ color: activeColors.text }}
-            left={() => <List.Icon icon="block-helper" color={activeColors.text} />}
+            left={() => (
+              <List.Icon icon="block-helper" color={activeColors.text} />
+            )}
             onPress={() => {
               // Show blocked contacts alert
             }}
@@ -129,8 +144,12 @@ const Setting = () => {
         title="Sign Out"
         message="Are you sure you want to sign out? You will need to log in again to access your account."
         actions={[
-          { label: "Cancel", onPress: () => setSignOutModalVisible(false), nature: "constructive" },
-          { label: "Sign Out", onPress: performSignOut , nature: "destructive" }
+          {
+            label: "Cancel",
+            onPress: () => setSignOutModalVisible(false),
+            nature: "constructive",
+          },
+          { label: "Sign Out", onPress: performSignOut, nature: "destructive" },
         ]}
         onDismiss={() => setSignOutModalVisible(false)}
         isDarkMode={isDark}

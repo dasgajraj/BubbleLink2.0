@@ -1,30 +1,29 @@
-import React, { useState, useEffect, useRef, useCallback, useContext } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  Dimensions,
-} from "react-native";
-import { signOut } from "firebase/auth";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useContext,
+} from "react";
+import { View, Text, FlatList, StyleSheet, Dimensions } from "react-native";
 import { auth } from "../config/firebaseConfig";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { 
-  Avatar, 
-  TextInput, 
-  IconButton, 
-  ActivityIndicator, 
+import {
+  Avatar,
+  TextInput,
+  IconButton,
+  ActivityIndicator,
   Surface,
   useTheme,
-} from 'react-native-paper';
-import { 
-  subscribeToMessages, 
+} from "react-native-paper";
+import {
+  subscribeToMessages,
   sendMessage as sendMessageService,
-  Message
+  Message,
 } from "../services/chatService";
 import { colors } from "../config/theme";
 import { ThemeContext } from "../constants/ThemeContext";
-import { CustomAppBar } from '../component/AppBar';
+import { CustomAppBar } from "../component/AppBar";
 
 const { width } = Dimensions.get("window");
 
@@ -41,11 +40,6 @@ export default function Chat() {
   const [isDark] = useState(theme.mode === "dark");
   const paperTheme = useTheme();
 
-  const onSignOut = () => {
-    signOut(auth).catch((error) => console.log("Error logging out: ", error));
-    navigation.navigate("Login");
-  };
-
   // Subscribe to messages
   useEffect(() => {
     const unsubscribe = subscribeToMessages(recipientId, setMessages);
@@ -55,7 +49,7 @@ export default function Chat() {
   // Send a message
   const sendMessage = useCallback(async () => {
     if (!inputText.trim() || sending) return;
-    
+
     try {
       setSending(true);
       await sendMessageService(inputText, recipientId);
@@ -70,10 +64,11 @@ export default function Chat() {
   // Render a message item
   const renderMessage = ({ item }: { item: Message }) => {
     const isCurrentUser = item.user._id === auth.currentUser?.uid;
-    const timestamp = typeof item.createdAt === 'number' 
-      ? new Date(item.createdAt) 
-      : item.createdAt?.toDate() || new Date();
-      
+    const timestamp =
+      typeof item.createdAt === "number"
+        ? new Date(item.createdAt)
+        : item.createdAt?.toDate() || new Date();
+
     const formattedTime = timestamp.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
@@ -87,33 +82,44 @@ export default function Chat() {
         ]}
       >
         {!isCurrentUser && (
-          <Avatar.Text 
-            size={32} 
-            label={item.user.email.substring(0, 2).toUpperCase()} 
+          <Avatar.Text
+            size={32}
+            label={item.user.email.substring(0, 2).toUpperCase()}
             style={styles.avatar}
           />
         )}
         <View>
-          <Text style={[
-            isCurrentUser ? styles.userIdTextOther : styles.userIdTextCurrent,
-            { color: activeColors.textSecondary }
-          ]}>
+          <Text
+            style={[
+              isCurrentUser ? styles.userIdTextOther : styles.userIdTextCurrent,
+              { color: activeColors.textSecondary },
+            ]}
+          >
             {isCurrentUser ? "You" : item.user.email}
           </Text>
           <Surface
             style={[
               styles.messageContainer,
-              isCurrentUser 
-                ? [styles.currentUserMessage, { backgroundColor: activeColors.primary }]
-                : [styles.otherUserMessage, { backgroundColor: activeColors.card }],
+              isCurrentUser
+                ? [
+                    styles.currentUserMessage,
+                    { backgroundColor: activeColors.primary },
+                  ]
+                : [
+                    styles.otherUserMessage,
+                    { backgroundColor: activeColors.card },
+                  ],
             ]}
             elevation={1}
           >
             <Text
               style={[
                 styles.messageText,
-                isCurrentUser 
-                  ? [styles.currentUserText, { color: activeColors.textOnPrimary }]
+                isCurrentUser
+                  ? [
+                      styles.currentUserText,
+                      { color: activeColors.textOnPrimary },
+                    ]
                   : [styles.otherUserText, { color: activeColors.text }],
               ]}
             >
@@ -122,8 +128,11 @@ export default function Chat() {
             <Text
               style={[
                 styles.timeText,
-                isCurrentUser 
-                  ? [styles.currentUserTime, { color: activeColors.textOnPrimaryMuted }]
+                isCurrentUser
+                  ? [
+                      styles.currentUserTime,
+                      { color: activeColors.textOnPrimaryMuted },
+                    ]
                   : [styles.otherUserTime, { color: activeColors.textMuted }],
               ]}
             >
@@ -145,11 +154,11 @@ export default function Chat() {
   // Define the app bar actions
   const appBarActions = [
     {
-      icon: 'phone',
+      icon: "phone",
       onPress: () => {},
     },
     {
-      icon: 'dots-vertical',
+      icon: "dots-vertical",
       onPress: () => {},
     },
   ];
@@ -160,8 +169,9 @@ export default function Chat() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: activeColors.background }]}>
-      
+    <View
+      style={[styles.container, { backgroundColor: activeColors.background }]}
+    >
       <CustomAppBar
         title={recipientEmail}
         subtitle={`ID: ${recipientId}`}
@@ -169,7 +179,7 @@ export default function Chat() {
         actions={appBarActions}
         onTitlePress={handleTitlePress}
       />
-      
+
       <FlatList
         ref={flatListRef}
         data={messages}
@@ -179,14 +189,19 @@ export default function Chat() {
         onContentSizeChange={onContentSizeChange}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, { color: activeColors.textSecondary }]}>
+            <Text
+              style={[styles.emptyText, { color: activeColors.textSecondary }]}
+            >
               No messages yet. Say hello!
             </Text>
           </View>
         )}
       />
 
-      <Surface style={[styles.inputContainer, { backgroundColor: activeColors.card }]} elevation={4}>
+      <Surface
+        style={[styles.inputContainer, { backgroundColor: activeColors.card }]}
+        elevation={4}
+      >
         <IconButton
           icon="paperclip"
           size={24}
@@ -194,7 +209,10 @@ export default function Chat() {
           onPress={() => {}}
         />
         <TextInput
-          style={[styles.input, { backgroundColor: 'transparent', color: activeColors.text }]}
+          style={[
+            styles.input,
+            { backgroundColor: "transparent", color: activeColors.text },
+          ]}
           value={inputText}
           onChangeText={setInputText}
           placeholder="Type a message..."
@@ -207,12 +225,20 @@ export default function Chat() {
           maxHeight={100}
         />
         {sending ? (
-          <ActivityIndicator size="small" color={activeColors.primary} style={styles.sendButton} />
+          <ActivityIndicator
+            size="small"
+            color={activeColors.primary}
+            style={styles.sendButton}
+          />
         ) : (
           <IconButton
             icon="send"
             size={24}
-            iconColor={inputText.trim() && !sending ? activeColors.primary : activeColors.textSecondary}
+            iconColor={
+              inputText.trim() && !sending
+                ? activeColors.primary
+                : activeColors.textSecondary
+            }
             onPress={sendMessage}
             disabled={!inputText.trim() || sending}
             style={styles.sendButton}
@@ -233,8 +259,8 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 40,
   },
   emptyText: {
