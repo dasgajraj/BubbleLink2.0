@@ -34,24 +34,6 @@ const Contacts = () => {
 
   const contacts = getFilteredContacts();
 
-  // Format date to display "Today", "Yesterday", or date
-  const formatLastContactedDate = (dateString) => {
-    if (!dateString) return "Never";
-
-    const contactDate = new Date(dateString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (contactDate.toDateString() === today.toDateString()) {
-      return "Today";
-    } else if (contactDate.toDateString() === yesterday.toDateString()) {
-      return "Yesterday";
-    } else {
-      return contactDate.toLocaleDateString();
-    }
-  };
-
   const renderContactItem = useCallback(
     ({ item }: { item: Contact }) => {
       return (
