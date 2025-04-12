@@ -15,7 +15,7 @@ export const useProfileService = (userId, navigation) => {
     const fetchUserProfile = async () => {
       try {
         const userSnap = await getDoc(userRef);
-        
+        a
         if (userSnap.exists()) {
           const userData = userSnap.data();
           setUserProfile({

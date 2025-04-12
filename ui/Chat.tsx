@@ -201,7 +201,6 @@ export default function Chat() {
         renderItem={renderMessage}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.messagesList}
-        onContentSizeChange={onContentSizeChange}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
             <Text

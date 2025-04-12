@@ -2,8 +2,13 @@ import { useEffect, useState, useCallback } from "react";
 import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { auth, firestore } from "../config/firebaseConfig";
 
+interface user {
+ id:string,
+ email: string,
+ urlPhoto:string, 
+}
 export const useHomeService = (navigation) => {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<user[]>([]);
   const [userImages, setUserImages] = useState({});
   const [isLoading, setIsLoading] = useState(true);
 
