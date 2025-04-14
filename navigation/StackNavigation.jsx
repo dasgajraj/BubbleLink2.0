@@ -1,4 +1,4 @@
-// StackNavigation.js
+// StackNavigation.jsx
 import React, { useState, useEffect, useContext } from "react";
 import { StatusBar } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";

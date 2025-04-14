@@ -26,20 +26,11 @@ import { CustomAppBar } from "../component/AppBar";
 
 const { width } = Dimensions.get("window");
 
-// Define message type based on your chat service
-interface Message {
-  id: string;
-  text: string;
-  sender: string;
-  receiver: string;
-  createdAt: any;
-}
-
 export default function Chat() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
   const [sending, setSending] = useState(false);
-  const flatListRef = useRef<FlatList>(null);
+  const flatListRef = useRef(null);
   const navigation = useNavigation();
   const route = useRoute();
   const { recipientId, recipientEmail } = route.params;
@@ -49,10 +40,8 @@ export default function Chat() {
   const paperTheme = useTheme();
   const currentUserId = auth.currentUser?.uid;
 
-  // Subscribe to messages
   useEffect(() => {
     const unsubscribe = listenMessages((allMessages) => {
-      // Filter messages that are between current user and recipient
       const relevantMessages = allMessages.filter(
         (msg) =>
           (msg.sender === currentUserId && msg.receiver === recipientId) ||
@@ -60,11 +49,10 @@ export default function Chat() {
       );
       setMessages(relevantMessages);
     });
-    
+
     return unsubscribe;
   }, [recipientId, currentUserId]);
 
-  // Send a message
   const sendMessage = useCallback(async () => {
     if (!inputText.trim() || sending || !currentUserId) return;
 
@@ -79,20 +67,19 @@ export default function Chat() {
     }
   }, [inputText, recipientId, sending, currentUserId]);
 
-  // Render a message item
-  const renderMessage = ({ item }: { item: Message }) => {
+  const renderMessage = ({ item }) => {
     const isCurrentUser = item.sender === currentUserId;
     const timestamp =
       typeof item.createdAt === "number"
         ? new Date(item.createdAt)
-        : item.createdAt?.toDate() || new Date();
+        : item.createdAt?.toDate?.() || new Date();
 
     const formattedTime = timestamp.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
     });
 
-    const userEmail = isCurrentUser 
+    const userEmail = isCurrentUser
       ? auth.currentUser?.email || "You"
       : recipientEmail;
 
@@ -113,7 +100,9 @@ export default function Chat() {
         <View>
           <Text
             style={[
-              isCurrentUser ? styles.userIdTextOther : styles.userIdTextCurrent,
+              isCurrentUser
+                ? styles.userIdTextOther
+                : styles.userIdTextCurrent,
               { color: activeColors.textSecondary },
             ]}
           >
@@ -166,7 +155,6 @@ export default function Chat() {
     );
   };
 
- // Define the app bar actions
   const appBarActions = [
     {
       icon: "phone",
@@ -178,15 +166,12 @@ export default function Chat() {
     },
   ];
 
-  // Navigate to user profile when title is pressed
   const handleTitlePress = () => {
     navigation.navigate("Profile", { userId: recipientId });
   };
 
   return (
-    <View
-      style={[styles.container, { backgroundColor: activeColors.background }]}
-    >
+    <View style={[styles.container, { backgroundColor: activeColors.background }]}>
       <CustomAppBar
         title={recipientEmail}
         subtitle={`ID: ${recipientId}`}
@@ -203,9 +188,7 @@ export default function Chat() {
         contentContainerStyle={styles.messagesList}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
-            <Text
-              style={[styles.emptyText, { color: activeColors.textSecondary }]}
-            >
+            <Text style={[styles.emptyText, { color: activeColors.textSecondary }]}>
               No messages yet. Say hello!
             </Text>
           </View>

@@ -10,25 +10,27 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { List, Button, Switch, Text } from "react-native-paper";
+import { List, Text } from "react-native-paper";
 import { useHomeService } from "../services/homeService";
 import { colors } from "../config/theme";
 import { ThemeContext } from "../constants/ThemeContext";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { Ionicons } from "@expo/vector-icons"; // Using Ionicons from Expo
 
+// Component
 const Home = () => {
   const navigation = useNavigation();
+
   const {
     users,
     userImages,
     searchUsers,
-    onSignOut,
     isLoading,
-    getDefaultAvatar,
   } = useHomeService(navigation);
-  const { theme, updateTheme } = useContext(ThemeContext);
-  const activeColors = colors[theme.mode];
-  const [isDark, setDark] = useState(theme.mode === "dark");
+
+  const themeContext = useContext(ThemeContext);
+  const themeMode = themeContext?.theme?.mode || "light";
+  const activeColors = colors[themeMode];
+
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredUsers, setFilteredUsers] = useState([]);
 
@@ -42,42 +44,38 @@ const Home = () => {
   }, [searchQuery, users, searchUsers]);
 
   const renderUser = useCallback(
-    ({ item }) => {
-      return (
-        <List.Item
-          title={item.email}
-          left={() => (
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate("Profile", { userId: item.id })
-              }
-            >
-              <Image
-                source={{
-                  uri: userImages[item.id] || getDefaultAvatar(item.id),
-                }}
-                style={styles.profileImage}
-              />
-            </TouchableOpacity>
-          )}
-          onPress={() =>
-            navigation.navigate("Chat", {
-              recipientId: item.id,
-              recipientEmail: item.email,
-            })
-          }
-          style={[
-            styles.userItem,
-            {
-              backgroundColor: activeColors.primarySurface,
-              borderColor: activeColors.border,
-            },
-          ]}
-          titleStyle={{ color: activeColors.text }}
-        />
-      );
-    },
-    [navigation, activeColors, userImages, getDefaultAvatar]
+    ({ item }) => (
+      <List.Item
+        title={item.email}
+        left={() => (
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("Profile", { userId: item.id })
+            }
+          >
+            <Image
+              source={{ uri: userImages[item.id] }}
+              style={styles.profileImage}
+            />
+          </TouchableOpacity>
+        )}
+        onPress={() =>
+          navigation.navigate("Chat", {
+            recipientId: item.id,
+            recipientEmail: item.email,
+          })
+        }
+        style={[
+          styles.userItem,
+          {
+            backgroundColor: activeColors.primarySurface,
+            borderColor: activeColors.border,
+          },
+        ]}
+        titleStyle={{ color: activeColors.text }}
+      />
+    ),
+    [navigation, activeColors, userImages]
   );
 
   if (isLoading) {
@@ -106,7 +104,7 @@ const Home = () => {
             },
           ]}
         >
-          <Icon
+          <Ionicons
             name="search"
             size={24}
             color={activeColors.text}
@@ -121,7 +119,7 @@ const Home = () => {
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Icon name="close" size={24} color={activeColors.text} />
+              <Ionicons name="close" size={24} color={activeColors.text} />
             </TouchableOpacity>
           )}
         </View>
@@ -132,7 +130,7 @@ const Home = () => {
           keyExtractor={(item) => item.id}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Icon
+              <Ionicons
                 name="person-search"
                 size={50}
                 color={activeColors.primary}
