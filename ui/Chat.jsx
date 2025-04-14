@@ -1,28 +1,11 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  useContext,
-} from "react";
-import { View, Text, FlatList, StyleSheet, Dimensions } from "react-native";
-import { auth } from "../config/firebaseConfig";
+import React, { useState, useEffect, useRef, useCallback, useContext } from "react";
+import { View, Text, FlatList, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
+import { Appbar, Avatar, TextInput, IconButton, ActivityIndicator, Surface } from "react-native-paper";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import {
-  Avatar,
-  TextInput,
-  IconButton,
-  ActivityIndicator,
-  Surface,
-  useTheme,
-} from "react-native-paper";
-import {
-  sendMessage as sendMessageService,
-  listenMessages,
-} from "../services/chatService";
-import { colors } from "../config/theme";
+import { auth } from "../config/firebaseConfig";
+import { sendMessage as sendMessageService, listenMessages } from "../services/chatService";
 import { ThemeContext } from "../constants/ThemeContext";
-import { CustomAppBar } from "../component/AppBar";
+import { colors } from "../config/theme";
 
 const { width } = Dimensions.get("window");
 
@@ -34,10 +17,13 @@ export default function Chat() {
   const navigation = useNavigation();
   const route = useRoute();
   const { recipientId, recipientEmail } = route.params;
-  const { theme } = useContext(ThemeContext);
-  const activeColors = colors[theme.mode];
-  const [isDark] = useState(theme.mode === "dark");
-  const paperTheme = useTheme();
+
+  const themeContext = useContext(ThemeContext);
+  const themeMode = themeContext?.theme?.mode || "light";
+  const activeColors = colors[themeMode];
+
+  // Extract username from email (string before @)
+  const recipientUsername = recipientEmail.split('@')[0];
   const currentUserId = auth.currentUser?.uid;
 
   useEffect(() => {
@@ -47,11 +33,24 @@ export default function Chat() {
           (msg.sender === currentUserId && msg.receiver === recipientId) ||
           (msg.sender === recipientId && msg.receiver === currentUserId)
       );
-      setMessages(relevantMessages);
+      const sortedMessages = relevantMessages.sort((a, b) => {
+        const timestampA = typeof a.createdAt === "number" ? a.createdAt : a.createdAt?.toDate?.()?.getTime() || 0;
+        const timestampB = typeof b.createdAt === "number" ? b.createdAt : b.createdAt?.toDate?.()?.getTime() || 0;
+        return timestampA - timestampB;
+      });
+      
+      setMessages(sortedMessages);
     });
 
     return unsubscribe;
   }, [recipientId, currentUserId]);
+
+  // Auto-scroll to bottom on new messages
+  useEffect(() => {
+    if (messages.length > 0 && flatListRef.current) {
+      setTimeout(() => flatListRef.current.scrollToEnd({ animated: false }), 100);
+    }
+  }, [messages]);
 
   const sendMessage = useCallback(async () => {
     if (!inputText.trim() || sending || !currentUserId) return;
@@ -67,104 +66,45 @@ export default function Chat() {
     }
   }, [inputText, recipientId, sending, currentUserId]);
 
-  const renderMessage = ({ item }) => {
+  const renderMessage = ({ item, index }) => {
     const isCurrentUser = item.sender === currentUserId;
-    const timestamp =
-      typeof item.createdAt === "number"
-        ? new Date(item.createdAt)
-        : item.createdAt?.toDate?.() || new Date();
-
-    const formattedTime = timestamp.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-
-    const userEmail = isCurrentUser
-      ? auth.currentUser?.email || "You"
-      : recipientEmail;
-
+    const showAvatar = !isCurrentUser && 
+      (index === 0 || messages[index - 1].sender !== item.sender);
+    
     return (
-      <View
-        style={[
-          styles.messageRowContainer,
-          isCurrentUser ? styles.currentUserRow : styles.otherUserRow,
-        ]}
-      >
-        {!isCurrentUser && (
+      <View style={styles.messageWrapper}>
+        {!isCurrentUser && showAvatar && (
           <Avatar.Text
             size={32}
-            label={recipientEmail.substring(0, 2).toUpperCase()}
-            style={styles.avatar}
+            label={recipientUsername.substring(0, 2).toUpperCase()}
+            style={[styles.avatar, { backgroundColor: activeColors.primary }]}
           />
         )}
-        <View>
+        {!isCurrentUser && !showAvatar && <View style={styles.avatarPlaceholder} />}
+        
+        <View
+          style={[
+            styles.messageContainer,
+            isCurrentUser ? 
+              [styles.currentUserMessage, { backgroundColor: activeColors.primary }] : 
+              [styles.otherUserMessage, { backgroundColor: activeColors.secondarySurface }],
+            // Ensure consistent right margins for current user messages
+            isCurrentUser && styles.currentUserMessageContainer
+          ]}
+        >
           <Text
-            style={[
-              isCurrentUser
-                ? styles.userIdTextOther
-                : styles.userIdTextCurrent,
-              { color: activeColors.textSecondary },
-            ]}
+            style={{
+              color: isCurrentUser ? activeColors.onPrimaryContainer : activeColors.text,
+            }}
           >
-            {isCurrentUser ? "You" : userEmail}
+            {item.text}
           </Text>
-          <Surface
-            style={[
-              styles.messageContainer,
-              isCurrentUser
-                ? [
-                    styles.currentUserMessage,
-                    { backgroundColor: activeColors.primary },
-                  ]
-                : [
-                    styles.otherUserMessage,
-                    { backgroundColor: activeColors.card },
-                  ],
-            ]}
-            elevation={1}
-          >
-            <Text
-              style={[
-                styles.messageText,
-                isCurrentUser
-                  ? [
-                      styles.currentUserText,
-                      { color: activeColors.textOnPrimary },
-                    ]
-                  : [styles.otherUserText, { color: activeColors.text }],
-              ]}
-            >
-              {item.text}
-            </Text>
-            <Text
-              style={[
-                styles.timeText,
-                isCurrentUser
-                  ? [
-                      styles.currentUserTime,
-                      { color: activeColors.textOnPrimaryMuted },
-                    ]
-                  : [styles.otherUserTime, { color: activeColors.textMuted }],
-              ]}
-            >
-              {formattedTime}
-            </Text>
-          </Surface>
         </View>
+        
+        {isCurrentUser && <View style={styles.avatarPlaceholder} />}
       </View>
     );
   };
-
-  const appBarActions = [
-    {
-      icon: "phone",
-      onPress: () => {},
-    },
-    {
-      icon: "dots-vertical",
-      onPress: () => {},
-    },
-  ];
 
   const handleTitlePress = () => {
     navigation.navigate("Profile", { userId: recipientId });
@@ -172,13 +112,29 @@ export default function Chat() {
 
   return (
     <View style={[styles.container, { backgroundColor: activeColors.background }]}>
-      <CustomAppBar
-        title={recipientEmail}
-        subtitle={`ID: ${recipientId}`}
-        showBack={true}
-        actions={appBarActions}
-        onTitlePress={handleTitlePress}
-      />
+      <Appbar.Header style={{ backgroundColor: activeColors.primarySurface }}>
+        <Appbar.BackAction 
+          onPress={() => navigation.goBack()} 
+          color={activeColors.text}
+        />
+        <TouchableOpacity 
+          onPress={handleTitlePress} 
+          style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+        >
+          <Avatar.Text
+            size={36}
+            label={recipientUsername.substring(0, 2).toUpperCase()}
+            style={{ marginRight: 10, backgroundColor: activeColors.primary }}
+          />
+          <Text style={{ color: activeColors.text, fontSize: 16, fontWeight: "600" }}>
+            {recipientUsername}
+          </Text>
+        </TouchableOpacity>
+        {/* Added call and search buttons */}
+        <Appbar.Action icon="phone" onPress={() => {}} color={activeColors.text} />
+        <Appbar.Action icon="magnify" onPress={() => {}} color={activeColors.text} />
+        <Appbar.Action icon="dots-vertical" onPress={() => {}} color={activeColors.text} />
+      </Appbar.Header>
 
       <FlatList
         ref={flatListRef}
@@ -186,47 +142,54 @@ export default function Chat() {
         renderItem={renderMessage}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.messagesList}
+        onContentSizeChange={() => {
+          if (messages.length > 0 && flatListRef.current) {
+            flatListRef.current.scrollToEnd({ animated: false });
+          }
+        }}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, { color: activeColors.textSecondary }]}>
+            <Text style={[styles.emptyText, { color: activeColors.onSurface40 }]}>
               No messages yet. Say hello!
             </Text>
           </View>
         )}
       />
 
-      <Surface
-        style={[styles.inputContainer, { backgroundColor: activeColors.card }]}
-        elevation={4}
-      >
+      <Surface style={[styles.inputContainer, { backgroundColor: activeColors.secondarySurface }]} elevation={2}>
+        {/* Added attachment button */}
         <IconButton
-          icon="paperclip"
+          icon="attachment"
           size={24}
-          iconColor={activeColors.primary}
+          iconColor={activeColors.onSurface60}
+          onPress={() => {}}
+        />
+        {/* Added emoji button */}
+        <IconButton
+          icon="emoticon-outline"
+          size={24}
+          iconColor={activeColors.onSurface60}
           onPress={() => {}}
         />
         <TextInput
           style={[
-            styles.input,
-            { backgroundColor: "transparent", color: activeColors.text },
+            styles.input, 
+            { 
+              backgroundColor: themeMode === 'light' ? 
+                activeColors.background : 
+                activeColors.secondarySurface 
+            }
           ]}
           value={inputText}
           onChangeText={setInputText}
-          placeholder="Type a message..."
-          placeholderTextColor={activeColors.textSecondary}
+          placeholder="Message"
+          placeholderTextColor={activeColors.placeholder}
           multiline
-          mode="outlined"
-          outlineColor={activeColors.border}
-          activeOutlineColor={activeColors.primary}
+          mode="flat"
           textColor={activeColors.text}
-          maxHeight={100}
         />
         {sending ? (
-          <ActivityIndicator
-            size="small"
-            color={activeColors.primary}
-            style={styles.sendButton}
-          />
+          <ActivityIndicator size="small" color={activeColors.primary} />
         ) : (
           <IconButton
             icon="send"
@@ -234,11 +197,10 @@ export default function Chat() {
             iconColor={
               inputText.trim() && !sending
                 ? activeColors.primary
-                : activeColors.textSecondary
+                : activeColors.onSurface60
             }
             onPress={sendMessage}
             disabled={!inputText.trim() || sending}
-            style={styles.sendButton}
           />
         )}
       </Surface>
@@ -251,7 +213,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   messagesList: {
-    padding: 15,
+    padding: 10,
     flexGrow: 1,
   },
   emptyContainer: {
@@ -263,66 +225,51 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
   },
-  messageRowContainer: {
+  messageWrapper: {
     flexDirection: "row",
     alignItems: "flex-end",
-    marginVertical: 4,
-  },
-  currentUserRow: {
-    justifyContent: "flex-end",
-  },
-  otherUserRow: {
-    justifyContent: "flex-start",
+    marginBottom: 4,
+    paddingHorizontal: 8,
   },
   messageContainer: {
-    maxWidth: width * 0.7,
+    maxWidth: width * 0.75,
     padding: 12,
-    borderRadius: 12,
-    marginHorizontal: 8,
+    borderRadius: 18,
+    marginVertical: 2,
   },
   currentUserMessage: {
-    borderTopRightRadius: 4,
+    alignSelf: "flex-end",
+    marginLeft: "auto",
+    borderBottomRightRadius: 6,
+  },
+  // Fixed spacing for current user messages
+  currentUserMessageContainer: {
+    marginRight: 0,
   },
   otherUserMessage: {
-    borderTopLeftRadius: 4,
+    alignSelf: "flex-start",
+    marginRight: "auto",
+    borderBottomLeftRadius: 6,
   },
-  messageText: {
-    fontSize: 16,
-    lineHeight: 22,
-  },
-  currentUserText: {},
-  otherUserText: {},
-  timeText: {
-    fontSize: 12,
-    marginTop: 4,
-  },
-  currentUserTime: {},
-  otherUserTime: {},
   avatar: {
+    marginRight: 8,
     marginBottom: 4,
+  },
+  avatarPlaceholder: {
+    width: 32,
+    marginHorizontal: 4,
   },
   inputContainer: {
     flexDirection: "row",
     padding: 8,
     alignItems: "center",
+    borderTopWidth: 0.5,
+    borderTopColor: "rgba(0,0,0,0.1)",
   },
   input: {
     flex: 1,
+    borderRadius: 20,
     maxHeight: 100,
-  },
-  sendButton: {
-    margin: 4,
-  },
-  userIdTextCurrent: {
-    fontSize: 12,
-    marginBottom: 4,
-    marginLeft: 40,
-    textAlign: "left",
-  },
-  userIdTextOther: {
-    fontSize: 12,
-    marginBottom: 4,
-    marginRight: 40,
-    textAlign: "right",
+    paddingHorizontal: 16,
   },
 });

@@ -19,7 +19,7 @@ import { colors } from "../config/theme";
 import { ThemeContext } from "../constants/ThemeContext";
 import { loginUser, registerUser } from "../services/authService";
 
-const Login = ({ onLoginSuccess }) => {
+const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [activeTab, setActiveTab] = useState("login");
@@ -41,7 +41,7 @@ const Login = ({ onLoginSuccess }) => {
           ? await loginUser(email, password)
           : await registerUser(email, password);
 
-      onLoginSuccess(user);
+      // onLoginSuccess(user);
       setEmail("");
       setPassword("");
     } catch (err) {

@@ -1,18 +1,33 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext } from "react";
 import {
   View,
   StyleSheet,
   SafeAreaView,
+  ScrollView,
   Image,
   TouchableOpacity,
   Text,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
-import { Button, Card, Title, Paragraph, Divider } from "react-native-paper";
+import {
+  Appbar,
+  Avatar,
+  Divider,
+  List,
+  Button,
+  useTheme,
+} from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { colors } from "../config/theme";
 import { ThemeContext } from "../constants/ThemeContext";
 import { useProfileService } from "../services/profileService";
+
+const ActionButton = ({ icon, label, onPress, color }) => (
+  <TouchableOpacity style={styles.actionButton} onPress={onPress}>
+    <Icon name={icon} size={24} color={color} />
+    <Text style={{ color, marginTop: 6 }}>{label}</Text>
+  </TouchableOpacity>
+);
 
 const Profile = () => {
   const route = useRoute();
@@ -20,18 +35,20 @@ const Profile = () => {
   const { userId } = route.params;
   const { theme } = useContext(ThemeContext);
   const activeColors = colors[theme.mode];
+  const paperTheme = useTheme();
 
-  const {
-    userProfile,
-    isLoading,
-    handleSendMessage,
-  } = useProfileService(userId, navigation);
+  const { userProfile, isLoading, handleSendMessage } = useProfileService(
+    userId,
+    navigation
+  );
 
   // Extract username from email (part before @)
   const getUserName = (email) => {
     if (!email) return "User";
     return email.split("@")[0];
   };
+
+  const displayName = userProfile.displayName || getUserName(userProfile.email);
 
   if (isLoading) {
     return (
@@ -49,161 +66,169 @@ const Profile = () => {
     <SafeAreaView
       style={[styles.safeArea, { backgroundColor: activeColors.background }]}
     >
-      <View style={styles.container}>
-        <Button
-          icon="arrow-left"
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-          labelStyle={{ color: activeColors.primary }}
-        >
-          Back
-        </Button>
-
-        <Card
-          style={[
-            styles.profileCard,
-            { backgroundColor: activeColors.primarySurface },
-          ]}
-        >
-          <View style={styles.profileHeader}>
-            <Image
-              source={{ uri: userProfile.photoURL }}
-              style={styles.profileImage}
-            />
-            <View style={styles.profileInfo}>
-              <Title style={{ color: activeColors.text }}>
-                {userProfile.displayName || getUserName(userProfile.email)}
-              </Title>
-              <Paragraph style={{ color: activeColors.onSurface60 }}>
-                {userProfile.email}
-              </Paragraph>
-              {userProfile.status && (
-                <View style={styles.statusContainer}>
-                  <View
-                    style={[
-                      styles.statusIndicator,
-                      {
-                        backgroundColor:
-                          userProfile.status === "online"
-                            ? "#4CAF50"
-                            : "#9E9E9E",
-                      },
-                    ]}
-                  />
-                  <Text style={{ color: activeColors.onSurface60 }}>
-                    {userProfile.status}
-                  </Text>
-                </View>
-              )}
-            </View>
-          </View>
-
-          <Divider
-            style={{
-              backgroundColor: activeColors.outline,
-              marginVertical: 16,
-            }}
+      <ScrollView style={styles.container}>
+        <Appbar.Header style={{ backgroundColor: activeColors.background }}>
+          <Appbar.BackAction
+            onPress={() => navigation.goBack()}
+            color={activeColors.text}
           />
+          <Appbar.Content title="" />
+          <Appbar.Action
+            icon="dots-vertical"
+            color={activeColors.text}
+            onPress={() => {}}
+          />
+        </Appbar.Header>
 
-          <View style={styles.actionContainer}>
-            <TouchableOpacity style={styles.actionButton} >
-              <Icon name="phone" size={24} color={activeColors.primary} />
-              <Text style={[styles.actionText, { color: activeColors.text }]}>
-                Call
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.actionButton}
-            >
-              <Icon name="video" size={24} color={activeColors.primary} />
-              <Text style={[styles.actionText, { color: activeColors.text }]}>
-                Video
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={handleSendMessage}
-            >
-              <Icon
-                name="message-text"
-                size={24}
-                color={activeColors.primary}
+        <View style={styles.center}>
+          {userProfile.photoURL ? (
+            <Avatar.Image
+              size={100}
+              source={{ uri: userProfile.photoURL }}
+            />
+          ) : (
+            <Avatar.Text
+              size={100}
+              label={displayName.substring(0, 2).toUpperCase()}
+              backgroundColor={activeColors.primary}
+            />
+          )}
+          <Text style={[styles.name, { color: activeColors.text }]}>
+            {displayName}
+          </Text>
+          <Text style={[styles.email, { color: activeColors.onSurface60 }]}>
+            {userProfile.email}
+          </Text>
+          {userProfile.status && (
+            <View style={styles.statusContainer}>
+              <View
+                style={[
+                  styles.statusIndicator,
+                  {
+                    backgroundColor:
+                      userProfile.status === "online" ? "#4CAF50" : "#9E9E9E",
+                  },
+                ]}
               />
-              <Text style={[styles.actionText, { color: activeColors.text }]}>
-                Message
+              <Text style={{ color: activeColors.onSurface60 }}>
+                {userProfile.status}
               </Text>
-            </TouchableOpacity>
-          </View>
-        </Card>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.buttonRow}>
+          <ActionButton
+            icon="message-text-outline"
+            label="Message"
+            color={activeColors.primary}
+            onPress={handleSendMessage}
+          />
+          <ActionButton
+            icon="phone-outline"
+            label="Call"
+            color={activeColors.primary}
+            onPress={() => {}}
+          />
+          <ActionButton
+            icon="video-outline"
+            label="Video"
+            color={activeColors.primary}
+            onPress={() => {}}
+          />
+        </View>
+
+        <Divider style={{ backgroundColor: activeColors.outline, marginVertical: 16 }} />
 
         {userProfile.bio && (
-          <Card
-            style={[
-              styles.bioCard,
-              { backgroundColor: activeColors.primarySurface },
-            ]}
-          >
-            <Card.Content>
-              <Title style={{ color: activeColors.text }}>About</Title>
-              <Paragraph style={{ color: activeColors.onSurface80 }}>
-                {userProfile.bio}
-              </Paragraph>
-            </Card.Content>
-          </Card>
+          <>
+            <List.Section>
+              <List.Subheader style={{ color: activeColors.primary }}>About</List.Subheader>
+              <View style={styles.bioContainer}>
+                <Text style={{ color: activeColors.onSurface80 }}>
+                  {userProfile.bio}
+                </Text>
+              </View>
+            </List.Section>
+            <Divider style={{ backgroundColor: activeColors.outline }} />
+          </>
         )}
 
-        <Card
-          style={[
-            styles.infoCard,
-            { backgroundColor: activeColors.primarySurface },
-          ]}
-        >
-          <Card.Content>
-            <Title style={{ color: activeColors.text }}>Info</Title>
+        <List.Section>
+          <List.Subheader style={{ color: activeColors.primary }}>Contact Info</List.Subheader>
 
-            {userProfile.phone && (
-              <View style={styles.infoRow}>
-                <Icon name="phone" size={20} color={activeColors.primary} />
-                <Text
-                  style={[styles.infoText, { color: activeColors.onSurface80 }]}
-                >
-                  {userProfile.phone}
-                </Text>
-              </View>
+          {userProfile.phone && (
+            <List.Item
+              title={userProfile.phone}
+              titleStyle={{ color: activeColors.text }}
+              left={() => (
+                <List.Icon color={activeColors.primary} icon="phone" />
+              )}
+            />
+          )}
+
+          <List.Item
+            title={userProfile.email}
+            titleStyle={{ color: activeColors.text }}
+            left={() => (
+              <List.Icon color={activeColors.primary} icon="email" />
             )}
+          />
 
-            {userProfile.location && (
-              <View style={styles.infoRow}>
-                <Icon
-                  name="map-marker"
-                  size={20}
-                  color={activeColors.primary}
-                />
-                <Text
-                  style={[styles.infoText, { color: activeColors.onSurface80 }]}
-                >
-                  {userProfile.location}
-                </Text>
-              </View>
+          {userProfile.location && (
+            <List.Item
+              title={userProfile.location}
+              titleStyle={{ color: activeColors.text }}
+              left={() => (
+                <List.Icon color={activeColors.primary} icon="map-marker" />
+              )}
+            />
+          )}
+        </List.Section>
+
+        <Divider style={{ backgroundColor: activeColors.outline }} />
+
+        <List.Section>
+          <List.Subheader style={{ color: activeColors.primary }}>More Actions</List.Subheader>
+
+          <List.Item
+            title="View Media"
+            titleStyle={{ color: activeColors.text }}
+            left={() => (
+              <List.Icon color={activeColors.primary} icon="image-outline" />
             )}
+            onPress={() => {}}
+          />
 
-            <View style={styles.infoRow}>
-              <Icon
-                name="account-circle"
-                size={20}
-                color={activeColors.primary}
-              />
-              <Text
-                style={[styles.infoText, { color: activeColors.onSurface80 }]}
-              >
-                User ID: {userId}
-              </Text>
-            </View>
-          </Card.Content>
-        </Card>
-      </View>
+          <List.Item
+            title="Search in Conversation"
+            titleStyle={{ color: activeColors.text }}
+            left={() => (
+              <List.Icon color={activeColors.primary} icon="magnify" />
+            )}
+            onPress={() => {}}
+          />
+
+          <List.Item
+            title="Notifications"
+            titleStyle={{ color: activeColors.text }}
+            left={() => (
+              <List.Icon color={activeColors.primary} icon="bell-outline" />
+            )}
+            onPress={() => {}}
+          />
+
+          <List.Item
+            title="User ID"
+            description={userId}
+            titleStyle={{ color: activeColors.text }}
+            descriptionStyle={{ color: activeColors.onSurface60 }}
+            left={() => (
+              <List.Icon color={activeColors.primary} icon="account-circle" />
+            )}
+          />
+        </List.Section>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -211,42 +236,33 @@ const Profile = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    paddingHorizontal: 10,
   },
   container: {
     flex: 1,
-    padding: 16,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-  backButton: {
-    alignSelf: "flex-start",
-    marginBottom: 16,
-  },
-  profileCard: {
-    padding: 16,
-    marginBottom: 16,
-    borderRadius: 12,
-  },
-  profileHeader: {
-    flexDirection: "row",
+  center: {
     alignItems: "center",
+    marginVertical: 16,
   },
-  profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+  name: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginTop: 10,
   },
-  profileInfo: {
-    marginLeft: 16,
-    flex: 1,
+  email: {
+    fontSize: 14,
+    marginTop: 4,
   },
   statusContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 4,
+    marginTop: 6,
   },
   statusIndicator: {
     width: 8,
@@ -254,31 +270,19 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginRight: 6,
   },
-  actionContainer: {
+  buttonRow: {
     flexDirection: "row",
     justifyContent: "space-around",
+    marginTop: 16,
+    marginBottom: 8,
   },
   actionButton: {
     alignItems: "center",
-    padding: 8,
+    width: 80,
   },
-  actionText: {
-    marginTop: 4,
-  },
-  bioCard: {
-    marginBottom: 16,
-    borderRadius: 12,
-  },
-  infoCard: {
-    borderRadius: 12,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 8,
-  },
-  infoText: {
-    marginLeft: 12,
+  bioContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
   },
 });
 

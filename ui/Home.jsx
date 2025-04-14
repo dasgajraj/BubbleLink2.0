@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useState, useEffect } from "react";
+import React, { useCallback, useContext, useState, useEffect } from 'react';
 import {
   View,
   FlatList,
@@ -8,34 +8,33 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-} from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { List, Text } from "react-native-paper";
-import { useHomeService } from "../services/homeService";
-import { colors } from "../config/theme";
-import { ThemeContext } from "../constants/ThemeContext";
-import { Ionicons } from "@expo/vector-icons"; // Using Ionicons from Expo
+} from 'react-native';
+import { FAB, List, Text } from 'react-native-paper';
+import { useHomeService } from '../services/homeService';
+import { colors } from '../config/theme';
+import { ThemeContext } from '../constants/ThemeContext';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 // Component
-const Home = () => {
-  const navigation = useNavigation();
-
+const Home = ({ setTabIndex }) => {
   const {
     users,
     userImages,
     searchUsers,
     isLoading,
-  } = useHomeService(navigation);
+  } = useHomeService();
 
+  const navigation = useNavigation();
   const themeContext = useContext(ThemeContext);
-  const themeMode = themeContext?.theme?.mode || "light";
+  const themeMode = themeContext?.theme?.mode || 'light';
   const activeColors = colors[themeMode];
 
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [filteredUsers, setFilteredUsers] = useState([]);
 
   useEffect(() => {
-    if (searchQuery.trim() === "") {
+    if (searchQuery.trim() === '') {
       setFilteredUsers(users);
     } else {
       const result = searchUsers(searchQuery);
@@ -49,9 +48,10 @@ const Home = () => {
         title={item.email}
         left={() => (
           <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("Profile", { userId: item.id })
-            }
+          onPress={() =>
+            navigation.navigate("Profile", {
+              userId: item.id,
+            })}
           >
             <Image
               source={{ uri: userImages[item.id] }}
@@ -63,8 +63,7 @@ const Home = () => {
           navigation.navigate("Chat", {
             recipientId: item.id,
             recipientEmail: item.email,
-          })
-        }
+          })} 
         style={[
           styles.userItem,
           {
@@ -75,7 +74,7 @@ const Home = () => {
         titleStyle={{ color: activeColors.text }}
       />
     ),
-    [navigation, activeColors, userImages]
+    [activeColors, userImages, setTabIndex]
   );
 
   if (isLoading) {
@@ -113,12 +112,12 @@ const Home = () => {
           <TextInput
             style={[styles.searchInput, { color: activeColors.text }]}
             placeholder="Search users..."
-            placeholderTextColor={activeColors.text + "80"}
+            placeholderTextColor={activeColors.text + '80'}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery("")}>
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
               <Ionicons name="close" size={24} color={activeColors.text} />
             </TouchableOpacity>
           )}
@@ -137,11 +136,23 @@ const Home = () => {
               />
               <Text style={[styles.emptyText, { color: activeColors.text }]}>
                 {searchQuery.length > 0
-                  ? "No users found"
-                  : "No users available"}
+                  ? 'No users found'
+                  : 'No users available'}
               </Text>
             </View>
           }
+        />
+        <FAB
+          icon="plus"
+          style={{ position: 'absolute', bottom: 16, right: 16 }}
+          onPress={() => setTabIndex(1)} 
+          label="Add Chat"
+          theme={{ colors: { accent: activeColors.primary } }}
+          color={activeColors.text}
+          backgroundColor={activeColors.primarySurface}
+          animated={true}
+          iconColor={activeColors.text}
+          labelStyle={{ color: activeColors.text }}
         />
       </View>
     </SafeAreaView>
@@ -158,12 +169,12 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     borderRadius: 12,
     padding: 8,
     marginBottom: 16,
@@ -191,8 +202,8 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   emptyContainer: {
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     padding: 40,
   },
   emptyText: {

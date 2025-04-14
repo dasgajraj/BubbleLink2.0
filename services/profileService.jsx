@@ -11,19 +11,16 @@ export const useProfileService = (userId, navigation) => {
   useEffect(() => {
     const userRef = doc(firestore, "users", userId);
     
-    // Initial fetch
     const fetchUserProfile = async () => {
       try {
         const userSnap = await getDoc(userRef);
-        a
         if (userSnap.exists()) {
           const userData = userSnap.data();
           setUserProfile({
             ...userData,
-            photoURL: userData.photoURL ,
+            photoURL: userData.photoURL,
           });
         }
-        
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching user profile:", error);
@@ -33,35 +30,38 @@ export const useProfileService = (userId, navigation) => {
     };
 
     fetchUserProfile();
-    
-    // Listen for real-time updates
-    const unsubscribe = onSnapshot(userRef, (doc) => {
-      if (doc.exists()) {
-        const userData = doc.data();
-        setUserProfile({
-          ...userData,
-          photoURL: userData.photoURL,
-        });
+
+    // Real-time listener
+    const unsubscribe = onSnapshot(
+      userRef,
+      (doc) => {
+        if (doc.exists()) {
+          const userData = doc.data();
+          setUserProfile({
+            ...userData,
+            photoURL: userData.photoURL,
+          });
+        }
+      },
+      (error) => {
+        console.error("Real-time profile update error:", error);
       }
-    }, (error) => {
-      console.error("Real-time profile update error:", error);
-    });
+    );
 
     return () => unsubscribe();
   }, [userId]);
 
-  // Navigate to chat screen
+  // Navigate to Chat screen
   const handleSendMessage = () => {
     navigation.navigate("Chat", {
       recipientId: userId,
-      recipientEmail: userProfile.email
+      recipientEmail: userProfile.email,
     });
   };
 
   return {
     userProfile,
     isLoading,
-
-    handleSendMessage
+    handleSendMessage,
   };
 };

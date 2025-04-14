@@ -1,4 +1,4 @@
-// theme/theme.tsx
+// config/theme.jsx
 import { MD3DarkTheme, MD3LightTheme } from "react-native-paper";
 
 export const CustomLightTheme = {

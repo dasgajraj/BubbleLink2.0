@@ -1,7 +1,7 @@
 import { db } from "../config/firebaseConfig";
 import { collection, addDoc, query, orderBy, onSnapshot } from "firebase/firestore";
 
-// Send message with sender and receiver
+// Send a message
 export const sendMessage = async (message, sender, receiver) => {
   try {
     await addDoc(collection(db, "messages"), {
@@ -15,11 +15,14 @@ export const sendMessage = async (message, sender, receiver) => {
   }
 };
 
-// Listen for messages
+// Listen to message updates
 export const listenMessages = (callback) => {
   const q = query(collection(db, "messages"), orderBy("createdAt"));
   return onSnapshot(q, (snapshot) => {
-    const messages = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const messages = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data()
+    }));
     callback(messages);
   });
 };

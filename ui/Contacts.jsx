@@ -1,4 +1,4 @@
-import React, { useState, useContext, useCallback } from "react";
+import React, { useState, useContext, useCallback, useMemo } from "react";
 import {
   View,
   SafeAreaView,
@@ -6,15 +6,13 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { List, Divider, Text, Avatar } from "react-native-paper";
-import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import {
-  getAllContacts,
-  searchContactsByName,
-  Contact,
-} from "../data/contactData";
+import { useNavigation } from "@react-navigation/native";
+import { getAllContacts, searchContactsByName } from "../data/contactData";
 import { ThemeContext } from "../constants/ThemeContext";
 import { colors } from "../config/theme";
 
@@ -24,19 +22,24 @@ const Contacts = () => {
   const { theme } = useContext(ThemeContext);
   const activeColors = colors[theme.mode];
 
-  // Get contacts based on search
-  const getFilteredContacts = () => {
-    if (searchQuery.trim()) {
-      return searchContactsByName(searchQuery);
-    }
-    return getAllContacts();
-  };
-
-  const contacts = getFilteredContacts();
+  const contacts = useMemo(() => {
+    return searchQuery.trim()
+      ? searchContactsByName(searchQuery)
+      : getAllContacts();
+  }, [searchQuery]);
 
   const renderContactItem = useCallback(
-    ({ item }: { item: Contact }) => {
-      return (
+    ({ item }) => (
+      <TouchableOpacity
+        onPress={() =>
+          navigation.navigate("Chat", {
+            recipientId: item.id,
+            recipientEmail: item.email,
+          })
+        }
+        style={styles.contactTouchable}
+        activeOpacity={0.7}
+      >
         <List.Item
           title={item.name}
           description={item.phoneNumber}
@@ -45,11 +48,11 @@ const Contacts = () => {
             styles.contactItem,
             { backgroundColor: activeColors.primarySurface },
           ]}
-          titleStyle={{ color: activeColors.text, fontWeight: "500" }}
-          descriptionStyle={{ color: activeColors.text + "CC" }}
+          titleStyle={{ color: activeColors.text, fontWeight: "600" }}
+          descriptionStyle={{ color: activeColors.text + "BB" }}
         />
-      );
-    },
+      </TouchableOpacity>
+    ),
     [navigation, activeColors]
   );
 
@@ -66,8 +69,8 @@ const Contacts = () => {
       >
         <Icon
           name="search"
-          size={24}
-          color={activeColors.text}
+          size={22}
+          color={activeColors.text + "B0"}
           style={styles.searchIcon}
         />
         <TextInput
@@ -76,10 +79,14 @@ const Contacts = () => {
           placeholderTextColor={activeColors.text + "80"}
           value={searchQuery}
           onChangeText={setSearchQuery}
+          autoCorrect={false}
+          autoCapitalize="none"
+          returnKeyType="search"
+          clearButtonMode="while-editing"
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={() => setSearchQuery("")}>
-            <Icon name="close" size={24} color={activeColors.text} />
+            <Icon name="close" size={22} color={activeColors.text + "A0"} />
           </TouchableOpacity>
         )}
       </View>
@@ -101,7 +108,10 @@ const Contacts = () => {
     <SafeAreaView
       style={[styles.safeArea, { backgroundColor: activeColors.background }]}
     >
-      <View style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.container}
+      >
         <FlatList
           data={contacts}
           renderItem={renderContactItem}
@@ -111,9 +121,12 @@ const Contacts = () => {
           ItemSeparatorComponent={() => (
             <Divider style={{ backgroundColor: activeColors.border }} />
           )}
-          contentContainerStyle={contacts.length === 0 ? { flex: 1 } : null}
+          contentContainerStyle={
+            contacts.length === 0 ? { flex: 1 } : { paddingBottom: 16 }
+          }
+          keyboardShouldPersistTaps="handled"
         />
-      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -133,29 +146,28 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderRadius: 12,
-    padding: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderWidth: 1,
   },
   searchIcon: {
-    marginHorizontal: 8,
+    marginRight: 8,
   },
   searchInput: {
     flex: 1,
     height: 40,
     fontSize: 16,
-    padding: 0,
+  },
+  contactTouchable: {
+    borderRadius: 12,
+    overflow: "hidden",
+    marginHorizontal: 8,
+    marginVertical: 4,
   },
   contactItem: {
-    padding: 8,
-  },
-  rightContent: {
-    flexDirection: "column",
-    alignItems: "flex-end",
-    justifyContent: "center",
-    marginRight: 8,
-  },
-  lastContacted: {
-    fontSize: 12,
+    padding: 10,
+    elevation: 1,
+    borderRadius: 12,
   },
   emptyContainer: {
     flex: 1,
