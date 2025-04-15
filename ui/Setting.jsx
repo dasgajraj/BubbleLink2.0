@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { View, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Image } from "react-native";
 import { getAuth, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { firestore } from "../config/firebaseConfig";
@@ -18,25 +18,7 @@ import {
   Portal,
   Paragraph,
 } from "react-native-paper";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-
-const SettingItem = ({ title, description, icon, right, onPress }) => {
-  const { theme } = useContext(ThemeContext);
-  const activeColors = colors[theme.mode];
-
-  return (
-    <List.Item
-      title={title}
-      description={description}
-      titleStyle={{ color: activeColors.text }}
-      descriptionStyle={{ color: activeColors.onSurface60 }}
-      left={() => <List.Icon icon={icon} color={activeColors.primary} />}
-      right={right}
-      onPress={onPress}
-      style={styles.listItem}
-    />
-  );
-};
+import { Ionicons } from '@expo/vector-icons';
 
 const Setting = ({ navigation }) => {
   const { theme, updateTheme } = useContext(ThemeContext);
@@ -55,7 +37,7 @@ const Setting = ({ navigation }) => {
       setUser({
         uid: currentUser.uid,
         email: currentUser.email,
-        name: currentUser.displayName || "User",
+        name: currentUser.email.split("@")[0] || "User",
       });
 
       // Fetch user profile pic from Firestore
@@ -90,157 +72,181 @@ const Setting = ({ navigation }) => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: activeColors.background }]}>
-      <Appbar.Header style={{ backgroundColor: activeColors.background, width: "100%" }}>
-        <Appbar.Content title="Settings" titleStyle={{ color: activeColors.text }} />
-      </Appbar.Header>
+    <SafeAreaView style={[styles.container, { backgroundColor: activeColors.primary }]}>
+      <View style={[styles.contentContainer, { backgroundColor: activeColors.background }]}>
+        <View style={styles.headerContainer}>
+          <Text style={[styles.headerText, { color: activeColors.text }]}>Settings</Text>
+          <View style={styles.actionButtons}>
+            <Appbar.Action 
+              icon="magnify" 
+              onPress={() => {}}
+              color={activeColors.text} 
+            />
+            <Appbar.Action 
+              icon="dots-vertical" 
+              onPress={() => {}} 
+              color={activeColors.text} 
+            />
+          </View>
+        </View>
 
-      <ScrollView style={styles.scrollView}>
-        {/* Profile Section */}
-        <Card style={[styles.profileCard, { backgroundColor: activeColors.primarySurface }]}>
-          <TouchableOpacity >
-            <View style={styles.profileContainer}>
-              {profilePic ? (
-                <Avatar.Image size={80} source={{ uri: profilePic }} />
-              ) : (
-                <Avatar.Icon
-                  size={80}
-                  icon="account"
-                  color="#FFF"
-                  style={{ backgroundColor: activeColors.primary }}
-                />
-              )}
-              <View style={styles.profileInfo}>
-                <Text style={[styles.profileName, { color: activeColors.text }]}>
-                  {user?.name}
-                </Text>
-                <Text style={[styles.profileEmail, { color: activeColors.onSurface60 }]}>
-                  {user?.email}
-                </Text>
-                <Text style={[styles.editProfile, { color: activeColors.primary }]}>
-                  Edit Profile
-                </Text>
-              </View>
-              <Icon name="chevron-right" size={24} color={activeColors.onSurface60} />
-            </View>
+        <View style={styles.profileContainer}>
+          {profilePic ? (
+            <Image
+              source={{ uri: profilePic }}
+              style={styles.profileImage}
+            />
+          ) : (
+            <Avatar.Icon
+              size={50}
+              icon="account"
+              color="#FFF"
+              style={[styles.profileImage, { backgroundColor: activeColors.primary }]}
+            />
+          )}
+          <View style={styles.userInfo}>
+            <Text style={[styles.username, { color: activeColors.text }]}>
+              {user?.name}
+            </Text>
+            <Text style={[styles.phoneNumber, { color: isDark ? '#aaaaaa' : '#666666' }]}>
+              {user?.email}
+            </Text>
+          </View>
+          <Button 
+            mode="outlined" 
+            style={styles.editButton}
+            labelStyle={[styles.editButtonText, { color: activeColors.text }]}
+            onPress={() => {}}
+          >
+            Edit
+          </Button>
+        </View>
+
+        <Text style={[styles.categoryHeader, { color: isDark ? '#aaaaaa' : '#666666' }]}>
+          General
+        </Text>
+
+        <ScrollView style={styles.menuContainer}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+          >
+            <Ionicons
+              name="notifications-outline"
+              size={22}
+              color={activeColors.text}
+              style={styles.menuIcon}
+            />
+            <Text style={[styles.menuItemText, { color: activeColors.text }]}>
+              Notifications
+            </Text>
+            <Switch
+              value={mode}
+              onValueChange={() => setMode(!mode)}
+              color={activeColors.primary}
+            />
           </TouchableOpacity>
-        </Card>
 
-        {/* Account Settings */}
-        <Text style={[styles.sectionTitle, { color: activeColors.primary }]}>
-          Account Settings
-        </Text>
-        <Card style={[styles.settingsCard, { backgroundColor: activeColors.primarySurface }]}>
-          <SettingItem
-            title="Dark Mode"
-            description="Toggle dark theme"
-            icon="theme-light-dark"
-            right={() => (
-              <Switch
-                value={isDark}
-                onValueChange={toggleTheme}
-                color={activeColors.primary}
-              />
-            )}
-          />
-          <Divider style={styles.divider} />
-          <SettingItem
-            title="Notifications"
-            description="Enable push notifications"
-            icon="bell-outline"
-            right={() => (
-              <Switch
-                color={activeColors.primary}
-                value={mode}
-                onValueChange={() => setMode(!mode)}
-              />
-            )}
-          />
-          <Divider style={styles.divider} />
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={toggleTheme}
+          >
+            <Ionicons
+              name="moon-outline"
+              size={22}
+              color={activeColors.text}
+              style={styles.menuIcon}
+            />
+            <Text style={[styles.menuItemText, { color: activeColors.text }]}>
+              Dark Mode
+            </Text>
+            <Switch
+              value={isDark}
+              onValueChange={toggleTheme}
+              color={activeColors.primary}
+            />
+          </TouchableOpacity>
 
-          <SettingItem
-            title="Cloud Sync"
-            description="Sync your chats to cloud"
-            icon="cloud-outline"
-          />
-        </Card>
+          <TouchableOpacity 
+            style={styles.menuItem}
+          >
+            <Ionicons
+              name="lock-closed-outline"
+              size={22}
+              color={activeColors.text}
+              style={styles.menuIcon}
+            />
+            <Text style={[styles.menuItemText, { color: activeColors.text }]}>
+              Privacy
+            </Text>
+          </TouchableOpacity>
 
-        {/* Privacy & Security */}
-        <Text style={[styles.sectionTitle, { color: activeColors.primary }]}>
-          Privacy & Security
-        </Text>
-        <Card style={[styles.settingsCard, { backgroundColor: activeColors.primarySurface }]}>
-          <SettingItem
-            title="Privacy"
-            description="Manage your privacy settings"
-            icon="shield-lock-outline"
-          />
-          <Divider style={styles.divider} />
-          <SettingItem
-            title="Blocked Contacts"
-            description="Manage blocked users"
-            icon="account-cancel-outline"
-          />
-          <Divider style={styles.divider} />
-          <SettingItem
-            title="Chat Settings"
-            description="Message, media and storage"
-            icon="message-text-outline"
-          />
-        </Card>
+          <TouchableOpacity 
+            style={styles.menuItem}
+          >
+            <Ionicons
+              name="cloud-outline"
+              size={22}
+              color={activeColors.text}
+              style={styles.menuIcon}
+            />
+            <Text style={[styles.menuItemText, { color: activeColors.text }]}>
+              Storage & Data
+            </Text>
+          </TouchableOpacity>
 
-        {/* Help & About */}
-        <Text style={[styles.sectionTitle, { color: activeColors.primary }]}>
-          Help & About
-        </Text>
-        <Card style={[styles.settingsCard, { backgroundColor: activeColors.primarySurface }]}>
-          <SettingItem
-            title="Help Center"
-            description="Get help with our app"
-            icon="help-circle-outline"
-          />
-          <Divider style={styles.divider} />
-          <SettingItem
-            title="About"
-            description="App version and info"
-            icon="information-outline"
-          />
-        </Card>
+          <TouchableOpacity 
+            style={styles.menuItem}
+          >
+            <Ionicons
+              name="help-circle-outline"
+              size={22}
+              color={activeColors.text}
+              style={styles.menuIcon}
+            />
+            <Text style={[styles.menuItemText, { color: activeColors.text }]}>
+              About
+            </Text>
+          </TouchableOpacity>
 
-        {/* Sign Out Button */}
-        <Button
-          mode="contained"
-          onPress={handleSignOut}
-          style={[styles.logoutButton, { backgroundColor: activeColors.error }]}
-          labelStyle={{ color: "#FFF" }}
-          icon="logout"
-        >
-          Sign Out
-        </Button>
-      </ScrollView>
+          <TouchableOpacity 
+            style={[styles.menuItem, styles.signOutItem]}
+            onPress={handleSignOut}
+          >
+            <Ionicons
+              name="log-out-outline"
+              size={22}
+              color={activeColors.error}
+              style={styles.menuIcon}
+            />
+            <Text style={[styles.menuItemText, { color: activeColors.error }]}>
+              Sign Out
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
 
-      {/* Sign Out Dialog */}
-      <Portal>
-        <Dialog
-          visible={signOutDialogVisible}
-          onDismiss={() => setSignOutDialogVisible(false)}
-          style={{ backgroundColor: activeColors.primarySurface }}
-        >
-          <Dialog.Icon icon="logout" color={activeColors.primary} />
+        {/* Sign Out Dialog */}
+        <Portal>
+          <Dialog
+            visible={signOutDialogVisible}
+            onDismiss={() => setSignOutDialogVisible(false)}
+            style={{ backgroundColor: activeColors.primarySurface }}
+          >
+            <Dialog.Icon icon="logout" color={activeColors.primary} />
 
-          <Dialog.Title style={{ color: activeColors.text }}>Sign Out</Dialog.Title>
-          <Dialog.Content>
-            <Paragraph style={{ color: activeColors.text }}>
-              Are you sure you want to sign out? You will need to log in again to access your account.
-            </Paragraph>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setSignOutDialogVisible(false)} textColor={activeColors.primary}>Cancel</Button>
-            <Button onPress={performSignOut} textColor={activeColors.error}>Sign Out</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
-    </View>
+            <Dialog.Title style={{ color: activeColors.text }}>Sign Out</Dialog.Title>
+            <Dialog.Content>
+              <Paragraph style={{ color: activeColors.text }}>
+                Are you sure you want to sign out? You will need to log in again to access your account.
+              </Paragraph>
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button onPress={() => setSignOutDialogVisible(false)} textColor={activeColors.primary}>Cancel</Button>
+              <Button onPress={performSignOut} textColor={activeColors.error}>Sign Out</Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -248,64 +254,81 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollView: {
+  contentContainer: {
     flex: 1,
-    width: "100%",
+    paddingHorizontal: 16,
   },
-  profileCard: {
-    marginHorizontal: 16,
-    marginVertical: 8,
-    borderRadius: 12,
-    elevation: 2,
+  headerContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingTop: 10,
+    marginBottom: 20,
+  },
+  headerText: {
+    fontSize: 30,
+    fontWeight: 'bold',
+  },
+  actionButtons: {
+    flexDirection: "row",
   },
   profileContainer: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
+    marginBottom: 30,
   },
-  profileInfo: {
+  profileImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 15,
+  },
+  userInfo: {
     flex: 1,
-    marginLeft: 16,
   },
-  profileName: {
+  username: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
-  profileEmail: {
+  phoneNumber: {
     fontSize: 14,
     marginTop: 2,
   },
-  editProfile: {
+  editButton: {
+    borderRadius: 20,
+    borderColor: '#3E4958',
+    height: 36,
+  },
+  editButtonText: {
     fontSize: 14,
-    marginTop: 8,
+    marginVertical: 7,
+    marginHorizontal: 10,
+  },
+  categoryHeader: {
+    fontSize: 14,
     fontWeight: "500",
+    marginBottom: 16,
   },
-  sectionTitle: {
+  menuContainer: {
+    flex: 1,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+  },
+  menuIcon: {
+    marginRight: 15,
+    width: 24,
+    textAlign: 'center',
+  },
+  menuItemText: {
     fontSize: 16,
-    fontWeight: "bold",
-    marginHorizontal: 16,
-    marginTop: 24,
-    marginBottom: 8,
+    flex: 1,
   },
-  settingsCard: {
-    marginHorizontal: 20,
-    borderRadius: 12,
-    elevation: 2,
-    overflow: "hidden",
-  },
-  listItem: {
-    paddingVertical: 4,
-    paddingHorizontal: 16,
-  },
-  divider: {
-    marginHorizontal: 16,
-    height: 0.5,
-  },
-  logoutButton: {
-    marginHorizontal: 16,
-    marginVertical: 24,
-    borderRadius: 8,
-  },
+  signOutItem: {
+    marginTop: 20,
+  }
 });
 
 export default Setting;

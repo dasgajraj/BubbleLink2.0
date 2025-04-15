@@ -16,7 +16,7 @@ export default function Chat() {
   const flatListRef = useRef(null);
   const navigation = useNavigation();
   const route = useRoute();
-  const { recipientId, recipientEmail } = route.params;
+  const { recipientId, recipientEmail, photoURL } = route.params;
 
   const themeContext = useContext(ThemeContext);
   const themeMode = themeContext?.theme?.mode || "light";
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
   },
   // Fixed spacing for current user messages
   currentUserMessageContainer: {
-    marginRight: 0,
+    marginRight: -40,
   },
   otherUserMessage: {
     alignSelf: "flex-start",

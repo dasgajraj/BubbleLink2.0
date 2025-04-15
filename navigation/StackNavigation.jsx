@@ -12,6 +12,7 @@ import { auth } from "../config/firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
 import MyTabs from "./BottomTabNavigation";
 import Chat from "../ui/Chat";
+import AddContact from "../ui/AddContact";
 
 const Stack = createStackNavigator();
 
@@ -54,6 +55,7 @@ const StackNavigation = () => {
               initialParams={{ userId: user?.uid }}
             />
             <Stack.Screen name="Profile" component={Profile} />
+            <Stack.Screen name="AddContact" component={AddContact} />
           </>
         )}
       </Stack.Navigator>
