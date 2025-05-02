@@ -1,14 +1,11 @@
 import { useState, useEffect } from "react";
-import { Alert, Linking } from "react-native";
+import { Alert } from "react-native";
 import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { firestore } from "../config/firebaseConfig";
 
 export const useProfileService = (userId, navigation) => {
   const [userProfile, setUserProfile] = useState({});
   const [isLoading, setIsLoading] = useState(true);
-
-  // Default avatar fallback
-  const getDefaultAvatar = (id) => `https://randomuser.me/api/portraits/men/${id % 100}.jpg`;
 
   // Fetch user profile from Firestore
   useEffect(() => {
@@ -23,14 +20,7 @@ export const useProfileService = (userId, navigation) => {
           const userData = userSnap.data();
           setUserProfile({
             ...userData,
-            photoURL: userData.photoURL || getDefaultAvatar(userId),
-          });
-        } else {
-          // If user doesn't exist, create basic profile with default
-          setUserProfile({
-            email: "Unknown User",
-            photoURL: getDefaultAvatar(userId),
-            status: "offline"
+            photoURL: userData.photoURL ,
           });
         }
         
@@ -50,7 +40,7 @@ export const useProfileService = (userId, navigation) => {
         const userData = doc.data();
         setUserProfile({
           ...userData,
-          photoURL: userData.photoURL || getDefaultAvatar(userId),
+          photoURL: userData.photoURL,
         });
       }
     }, (error) => {
@@ -59,24 +49,6 @@ export const useProfileService = (userId, navigation) => {
 
     return () => unsubscribe();
   }, [userId]);
-
-  // Handle phone call
-  const handleCall = () => {
-    if (userProfile.phone) {
-      Linking.openURL(`tel:${userProfile.phone}`);
-    } else {
-      Alert.alert("No Phone Number", "This user hasn't added a phone number.");
-    }
-  };
-
-  // Handle video call - This would typically use a third-party library
-  const handleVideoCall = () => {
-    Alert.alert(
-      "Video Call",
-      "This would initiate a video call with the user.",
-      [{ text: "OK" }]
-    );
-  };
 
   // Navigate to chat screen
   const handleSendMessage = () => {
@@ -89,8 +61,7 @@ export const useProfileService = (userId, navigation) => {
   return {
     userProfile,
     isLoading,
-    handleCall,
-    handleVideoCall,
+
     handleSendMessage
   };
 };

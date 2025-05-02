@@ -52,29 +52,7 @@ const Login = ({ onLoginSuccess }) => {
       setPassword("");
     } catch (err: any) {
       let errorMessage = "An unexpected error occurred";
-
-      if (err.code) {
-        switch (err.code) {
-          case "auth/invalid-email":
-            errorMessage = "Invalid email address";
-            break;
-          case "auth/user-not-found":
-            errorMessage = "No user found with this email";
-            break;
-          case "auth/wrong-password":
-            errorMessage = "Incorrect password";
-            break;
-          case "auth/email-already-in-use":
-            errorMessage = "Email is already registered";
-            break;
-          case "auth/weak-password":
-            errorMessage = "Password is too weak";
-            break;
-        }
-      }
-
-      Alert.alert("Authentication Error", errorMessage);
-    } finally {
+     } finally {
       setLoading(false);
     }
   };

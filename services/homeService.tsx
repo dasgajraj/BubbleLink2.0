@@ -7,8 +7,6 @@ export const useHomeService = (navigation) => {
   const [userImages, setUserImages] = useState({});
   const [isLoading, setIsLoading] = useState(true);
 
-  const getDefaultAvatar = (id) => `https://randomuser.me/api/portraits/men/${id % 100}.jpg`;
-
   // Fetch users from Firestore
   useEffect(() => {
     const fetchUsers = async () => {
@@ -45,9 +43,7 @@ export const useHomeService = (navigation) => {
         const userRef = doc(firestore, "users", user.id);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
-          images[user.id] = userSnap.data().photoURL || getDefaultAvatar(user.id);
-        } else {
-          images[user.id] = getDefaultAvatar(user.id);
+          images[user.id] = userSnap.data().photoURL;
         }
       }
       setUserImages(images);
@@ -77,6 +73,5 @@ export const useHomeService = (navigation) => {
     searchUsers, 
     isLoading,
     refreshUserImages,
-    getDefaultAvatar
   };
 };

@@ -166,14 +166,7 @@ export default function Chat() {
     );
   };
 
-  // Auto-scroll to bottom when messages update
-  const onContentSizeChange = useCallback(() => {
-    if (flatListRef.current && messages.length > 0) {
-      flatListRef.current.scrollToEnd({ animated: true });
-    }
-  }, [messages.length]);
-
-  // Define the app bar actions
+ // Define the app bar actions
   const appBarActions = [
     {
       icon: "phone",

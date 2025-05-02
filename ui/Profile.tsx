@@ -24,8 +24,6 @@ const Profile = () => {
   const {
     userProfile,
     isLoading,
-    handleCall,
-    handleVideoCall,
     handleSendMessage,
   } = useProfileService(userId, navigation);
 
@@ -108,7 +106,7 @@ const Profile = () => {
           />
 
           <View style={styles.actionContainer}>
-            <TouchableOpacity style={styles.actionButton} onPress={handleCall}>
+            <TouchableOpacity style={styles.actionButton} >
               <Icon name="phone" size={24} color={activeColors.primary} />
               <Text style={[styles.actionText, { color: activeColors.text }]}>
                 Call
@@ -117,7 +115,6 @@ const Profile = () => {
 
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={handleVideoCall}
             >
               <Icon name="video" size={24} color={activeColors.primary} />
               <Text style={[styles.actionText, { color: activeColors.text }]}>

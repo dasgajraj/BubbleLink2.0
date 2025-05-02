@@ -33,19 +33,16 @@ const Setting = () => {
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
           setProfilePic(
-            userSnap.data().photoURL || getDefaultAvatar(currentUser.uid)
+            userSnap.data().photoURL
           );
-        } else {
-          setProfilePic(getDefaultAvatar(currentUser.uid));
-        }
+        } 
       };
 
       fetchProfile();
     }
   }, []);
 
-  const getDefaultAvatar = (uid) =>
-    `https://randomuser.me/api/portraits/men/${uid % 100}.jpg`;
+
 
   const handleSignOut = () => {
     setSignOutModalVisible(true);
